@@ -1,0 +1,165 @@
+---
+title: Configuration
+description: Detailed guide to configuring Flame It Up for optimal performance
+---
+
+## Basic Configuration
+
+Configuring Flame It Up properly ensures you get the most out of the platform. Start with basic settings and gradually customize advanced options.
+
+<Steps>
+  <Step title="Account Setup" icon="user">
+    Complete your profile and account preferences.
+  </Step>
+  <Step title="Notification Settings" icon="bell">
+    Configure how and when you receive notifications.
+  </Step>
+  <Step title="Security Options" icon="shield">
+    Set up two-factor authentication and access controls.
+  </Step>
+</Steps>
+
+<Callout kind="info">Most configuration changes take effect immediately, but some may require a page refresh.</Callout>
+
+## Project Configuration
+
+Tailor projects to your specific needs with advanced configuration options.
+
+<Tabs>
+  <Tab title="Permissions" icon="lock">
+    Control who can access and modify projects.
+
+    Set role-based permissions for viewing, editing, and managing projects. You can define custom roles or use predefined ones like viewer, editor, and admin.
+
+    <Expandable title="Custom Roles" default-open="false">
+      Create custom roles with specific permissions for fine-grained access control.
+    </Expandable>
+  </Tab>
+  <Tab title="Workflows" icon="git-branch">
+    Define custom workflows for task management.
+
+    Create automated workflows that move tasks through different stages based on conditions. For example, automatically assign review tasks when a development task is completed.
+  </Tab>
+  <Tab title="Integrations" icon="plug">
+    Connect external tools and services.
+
+    Configure webhooks, API connections, and third-party integrations to extend functionality.
+  </Tab>
+</Tabs>
+
+<CodeGroup tabs="Permissions API,Workflow Setup">
+  ````javascript
+  // Set project permissions
+  await client.projects.updatePermissions(projectId, {
+    roles: {
+      'viewer': ['read'],
+      'editor': ['read', 'write'],
+      'admin': ['read', 'write', 'manage']
+    }
+  });
+  ````
+  ````javascript
+  // Create a custom workflow
+  const workflow = await client.workflows.create({
+    name: 'Development Workflow',
+    stages: ['todo', 'in_progress', 'review', 'done'],
+    transitions: [
+      { from: 'todo', to: 'in_progress', condition: 'assigned' },
+      { from: 'in_progress', to: 'review', condition: 'completed' }
+    ]
+  });
+  ````
+</CodeGroup>
+
+## Team Configuration
+
+Manage team settings and collaboration preferences.
+
+<Columns cols={2}>
+  <Card title="Member Management" icon="users" href="#member-management">
+    Add and manage team members.
+  </Card>
+  <Card title="Communication Settings" icon="message-square" href="#communication">
+    Configure team communication options.
+  </Card>
+</Columns>
+
+### Member Management
+
+Add team members and assign roles effectively.
+
+<Steps>
+  <Step title="Invite Members" icon="user-plus">
+    Send invitations via email.
+  </Step>
+  <Step title="Assign Roles" icon="user-check">
+    Set appropriate permissions for each member.
+  </Step>
+  <Step title="Manage Access" icon="key">
+    Control access levels and revoke permissions as needed.
+  </Step>
+</Steps>
+
+<ExpandableGroup>
+  <Expandable title="Bulk Invitations" default-open="false">
+    Invite multiple team members at once using CSV upload.
+  </Expandable>
+  <Expandable title="Role Templates" default-open="false">
+    Save role configurations as templates for quick assignment.
+  </Expandable>
+</ExpandableGroup>
+
+### Communication Settings
+
+Customize how your team communicates within the platform.
+
+<Expandable title="Notification Preferences" default-open="true">
+  Set up email and in-app notifications for different events.
+
+  Choose what types of activities trigger notifications, such as task assignments, project updates, and mentions.
+</Expandable>
+
+<Expandable title="Channel Configuration" default-open="false">
+  Create and organize communication channels for different topics.
+
+  Set up channels for general discussion, project-specific talks, and announcements.
+</Expandable>
+
+<CodeGroup tabs="Invite Member,Update Notifications">
+  ````javascript
+  // Invite a team member
+  await client.teams.invite({
+    email: 'newmember@company.com',
+    role: 'editor',
+    projects: ['project-1', 'project-2']
+  });
+  ````
+  ````javascript
+  // Update notification settings
+  await client.users.updateNotifications(userId, {
+    email: {
+      task_assigned: true,
+      project_updates: false,
+      mentions: true
+    },
+    in_app: {
+      all: true
+    }
+  });
+  ````
+</CodeGroup>
+
+<Callout kind="success">Proper configuration enhances team productivity and ensures smooth collaboration.</Callout>
+
+<Update label="2024-09-30" description="v2.0.5" tags={["improvement", "configuration"]}>
+  ## Improvements
+  - Enhanced configuration UI for better usability
+  - Added bulk configuration options
+  - Improved error handling for invalid settings
+</Update>
+
+<Update label="2024-09-10" description="v2.0.2" tags={["bugfix"]}>
+  ## Bug Fixes
+  - Fixed permission inheritance issues
+  - Resolved notification delivery problems
+</Update>

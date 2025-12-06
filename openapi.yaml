@@ -1,0 +1,103 @@
+openapi: '3.0.0'
+info:
+  version: 1.0.0
+  title: Flameup API
+  license:
+    name: MIT
+servers:
+  - url: http://flameup.example.com/v1
+paths:
+  /flames:
+    get:
+      summary: Retrieve a list of all flames in the system
+      operationId: listFlames
+      parameters:
+        - name: limit
+          in: query
+          description: Specify the maximum number of flames to return, with a maximum limit of 100 items per request
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Successfully returns a paginated collection of flames with detailed information
+          headers:
+            x-next:
+              description: Provides a direct link to access the next set of results for pagination
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flames'
+        default:
+          description: Indicates an unexpected error occurred during the request processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new flame entry in the system
+      operationId: createFlames
+      responses:
+        201:
+          description: Successfully created a new flame resource
+        default:
+          description: Indicates an unexpected error occurred during the creation process
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /flames/{flameId}:
+    get:
+      summary: Fetch detailed information for a specific flame using its unique identifier
+      operationId: showFlameById
+      parameters:
+        - name: flameId
+          in: path
+          required: true
+          description: The unique identifier of the flame to retrieve from the system
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully retrieved the flame details matching the provided identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flames'
+        default:
+          description: Indicates an unexpected error occurred while fetching the flame information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Flame:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+    Flames:
+      type: array
+      items:
+        $ref: '#/components/schemas/Flame'
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

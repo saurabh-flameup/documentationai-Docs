@@ -1,0 +1,112 @@
+---
+title: Introduction
+description: Overview of Flame It Up and its core capabilities
+---
+
+## Getting Started
+
+Flame It Up is a powerful platform designed to ignite your productivity by streamlining workflows and enhancing collaboration. It provides intuitive tools for managing projects, tracking progress, and fostering team communication. Whether you're a small team or a large organization, Flame It Up helps you turn ideas into action with ease.
+
+<Columns cols={3}>
+  <Card title="Quick Start" icon="zap" href="#quick-start">
+    Get up and running in minutes with our guided setup process.
+  </Card>
+  <Card title="Features" icon="star" href="features">
+    Explore the comprehensive features that make Flame It Up unique.
+  </Card>
+  <Card title="API" icon="code" href="api-reference">
+    Integrate with our robust API for custom solutions.
+  </Card>
+</Columns>
+
+## Core Concepts
+
+Understanding the fundamental principles of Flame It Up is essential for maximizing its potential. The platform revolves around three key concepts: ignition points, flame propagation, and heat management.
+
+Ignition points serve as the starting sparks that initiate projects and tasks. Flame propagation refers to how ideas and work spread through your team, ensuring everyone stays aligned. Heat management controls the intensity of activities to prevent burnout and maintain sustainable productivity.
+
+<Tabs>
+  <Tab title="Basic" icon="book">
+    Start with the basics to understand how Flame It Up works.
+
+    <Callout kind="info">For new users, we recommend beginning with the basic setup before exploring advanced features.</Callout>
+
+    <Steps>
+      <Step title="Sign Up" icon="user">
+        Create your account at flameup.com to access the platform.
+      </Step>
+      <Step title="Create Project" icon="plus">
+        Set up your first project to organize your work.
+      </Step>
+      <Step title="Invite Team" icon="users">
+        Bring your team on board to start collaborating.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Advanced" icon="settings">
+    Dive deeper into customization and integration options.
+
+    <Expandable title="API Integration" default-open="false">
+      Learn how to connect Flame It Up with your existing tools.
+
+      Use our REST API to integrate Flame It Up with external systems. The API supports authentication via API keys and provides endpoints for managing projects, tasks, and team members.
+    </Expandable>
+
+    <ExpandableGroup>
+      <Expandable title="Webhooks" default-open="false">
+        Set up webhooks to receive real-time notifications.
+
+        Configure webhooks to get instant updates on project changes and task completions.
+      </Expandable>
+      <Expandable title="Custom Fields" default-open="false">
+        Add custom fields to tailor the platform to your needs.
+
+        Create custom fields for additional metadata on projects and tasks.
+      </Expandable>
+    </ExpandableGroup>
+  </Tab>
+</Tabs>
+
+## Support and Resources
+
+We provide comprehensive support to ensure you have a smooth experience with Flame It Up. Our documentation covers everything from basic setup to advanced integrations.
+
+<CodeGroup tabs="JavaScript,Python">
+  ````javascript
+  // Example: Initialize Flame It Up client
+const flameup = require('flameup');
+
+const client = new flameup.Client({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://api.flameup.com'
+});
+
+// Create a new project
+client.projects.create({
+  name: 'My Project',
+  description: 'A sample project'
+}).then(project => {
+  console.log('Project created:', project.id);
+});
+  ````
+  ````python
+import flameup
+
+# Initialize client
+client = flameup.Client(
+    api_key='your-api-key',
+    base_url='https://api.flameup.com'
+)
+
+# Create project
+project = client.projects.create(
+    name='My Project',
+    description='A sample project'
+)
+print(f'Project created: {project.id}')
+  ````
+</CodeGroup>
+
+For troubleshooting common issues, refer to our FAQ section or contact support. The platform includes built-in error handling and logging to help diagnose problems quickly.
+
+<Callout kind="tip">Check out our changelog to stay updated on new features and improvements.</Callout>

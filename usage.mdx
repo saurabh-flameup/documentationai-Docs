@@ -1,0 +1,150 @@
+---
+title: Usage
+description: Practical guide to using Flame It Up effectively
+---
+
+## Getting Started with Flame It Up
+
+Flame It Up is designed to be intuitive and user-friendly. Whether you're new to the platform or an experienced user, this guide will help you make the most of its features. Start by familiarizing yourself with the interface and basic operations.
+
+<Steps>
+  <Step title="Access the Platform" icon="login">
+    Log in to your Flame It Up account using your credentials.
+  </Step>
+  <Step title="Explore Dashboard" icon="home">
+    Navigate the dashboard to see an overview of your projects and tasks.
+  </Step>
+  <Step title="Create First Project" icon="plus">
+    Set up a new project to begin organizing your work.
+  </Step>
+</Steps>
+
+<Callout kind="tip">Take advantage of the guided tour available in the help section to learn the interface quickly.</Callout>
+
+## Managing Projects
+
+Projects are the core organizational unit in Flame It Up. Learn how to create, edit, and archive projects to keep your work structured.
+
+<Tabs>
+  <Tab title="Creating Projects" icon="folder-plus">
+    Start new projects easily.
+
+    <CodeGroup tabs="Web Interface,API">
+      ````bash
+      # Web interface: Click "New Project" button
+      # Fill in name, description, and settings
+      ````
+      ````javascript
+const project = await client.projects.create({
+  name: 'New Project',
+  description: 'Description of the project',
+  settings: { visibility: 'team' }
+});
+      ````
+    </CodeGroup>
+  </Tab>
+  <Tab title="Project Settings" icon="settings">
+    Configure project preferences.
+
+    Access project settings to adjust permissions, add team members, and set project goals. You can also customize workflows and notification preferences.
+  </Tab>
+</Tabs>
+
+<Expandable title="Best Practices for Project Organization" default-open="false">
+  Use clear naming conventions and categorize projects by type or department. Regularly review and archive completed projects to maintain a clean workspace.
+</Expandable>
+
+## Working with Tasks
+
+Tasks represent individual work items within projects. Master task creation, assignment, and tracking to boost productivity.
+
+<Columns cols={2}>
+  <Card title="Task Creation" icon="plus" href="#task-creation">
+    Learn to create detailed tasks.
+  </Card>
+  <Card title="Task Assignment" icon="user" href="#task-assignment">
+    Assign tasks to team members.
+  </Card>
+</Columns>
+
+### Task Creation
+
+Create tasks with specific details to ensure clarity and accountability.
+
+<Steps>
+  <Step title="Open Project" icon="folder">
+    Navigate to the relevant project.
+  </Step>
+  <Step title="Add Task" icon="plus">
+    Use the add task button or keyboard shortcut.
+  </Step>
+  <Step title="Fill Details" icon="edit">
+    Enter title, description, priority, and due date.
+  </Step>
+  <Step title="Attach Files" icon="paperclip">
+    Upload any relevant documents or images.
+  </Step>
+</Steps>
+
+### Task Assignment
+
+Assign tasks to appropriate team members and track progress.
+
+<ExpandableGroup>
+  <Expandable title="Assigning Tasks" default-open="true">
+    Select team members from the dropdown and set responsibilities.
+
+    You can assign multiple people to a task and designate a primary assignee.
+  </Expandable>
+  <Expandable title="Tracking Progress" default-open="false">
+    Use status updates and comments to monitor task completion.
+
+    Update task status as work progresses and add comments for communication.
+  </Expandable>
+</ExpandableGroup>
+
+<CodeGroup tabs="Update Task,Add Comment">
+  ````javascript
+  // Update task status
+  await client.tasks.update(taskId, {
+    status: 'in_progress',
+    progress: 50
+  });
+  ````
+  ````javascript
+  // Add a comment to a task
+  await client.tasks.addComment(taskId, {
+    content: 'Working on this now',
+    attachments: ['file.pdf']
+  });
+  ````
+</CodeGroup>
+
+<Callout kind="info">Regularly update task statuses to keep the team informed and maintain accurate progress tracking.</Callout>
+
+## Collaboration Features
+
+Leverage Flame It Up's collaboration tools to work effectively as a team.
+
+<Steps>
+  <Step title="Join Discussions" icon="message-square">
+    Participate in task and project discussions.
+  </Step>
+  <Step title="Share Resources" icon="share">
+    Upload and share files with your team.
+  </Step>
+  <Step title="Set Notifications" icon="bell">
+    Configure alerts for important updates.
+  </Step>
+</Steps>
+
+<Expandable title="Advanced Collaboration" default-open="false">
+  Use @mentions to notify specific team members, create task dependencies, and integrate with external communication tools.
+</Expandable>
+
+<Update label="2024-10-01" description="v2.1.0" tags={["feature", "usability"]}>
+  ## New Features
+  - Improved task dependency management
+  - Enhanced file sharing capabilities
+  - Added @mention functionality in comments
+</Update>

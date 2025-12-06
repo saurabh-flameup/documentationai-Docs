@@ -1,0 +1,134 @@
+---
+title: Features
+description: Comprehensive overview of Flame It Up's key features and capabilities
+---
+
+## Key Features
+
+Flame It Up offers a robust set of features designed to enhance productivity and collaboration. From intuitive project management to advanced analytics, every tool is crafted to help teams achieve their goals efficiently.
+
+<Columns cols={2}>
+  <Card title="Project Management" icon="folder" href="#project-management">
+    Organize and track projects with ease.
+  </Card>
+  <Card title="Team Collaboration" icon="users" href="#team-collaboration">
+    Foster seamless communication and teamwork.
+  </Card>
+  <Card title="Analytics" icon="bar-chart" href="#analytics">
+    Gain insights with powerful reporting tools.
+  </Card>
+  <Card title="Integrations" icon="plug" href="#integrations">
+    Connect with your favorite tools and services.
+  </Card>
+</Columns>
+
+## Project Management
+
+At the heart of Flame It Up is a powerful project management system that allows you to create, organize, and monitor projects from inception to completion. You can define tasks, set deadlines, and assign responsibilities to team members.
+
+<Tabs>
+  <Tab title="Task Creation" icon="plus">
+    Create tasks quickly and assign them to team members.
+
+    <Steps>
+      <Step title="Navigate to Project" icon="arrow-right">
+        Open the project where you want to add tasks.
+      </Step>
+      <Step title="Add Task" icon="plus">
+        Click the add button and enter task details.
+      </Step>
+      <Step title="Assign and Save" icon="check">
+        Assign to a team member and save the task.
+      </Step>
+    </Steps>
+
+    <Callout kind="info">Tasks can include descriptions, due dates, and priority levels to ensure clear expectations.</Callout>
+  </Tab>
+  <Tab title="Progress Tracking" icon="eye">
+    Monitor project progress in real-time.
+
+    Use our dashboard to view task completion rates and identify bottlenecks. The system provides visual indicators for overdue tasks and upcoming deadlines.
+  </Tab>
+</Tabs>
+
+## Team Collaboration
+
+Flame It Up promotes collaboration through integrated communication tools and shared workspaces. Team members can comment on tasks, share files, and discuss project details in dedicated channels.
+
+<ExpandableGroup>
+  <Expandable title="Real-time Messaging" default-open="true">
+    Communicate instantly with your team.
+
+    Our real-time messaging feature allows for quick discussions and updates without leaving the platform. Messages are organized by project and task for easy reference.
+  </Expandable>
+  <Expandable title="File Sharing" default-open="false">
+    Share documents and resources securely.
+
+    Upload and share files directly within projects. The system supports various file types and includes version control to track changes.
+  </Expandable>
+  <Expandable title="Notifications" default-open="false">
+    Stay informed with customizable alerts.
+
+    Configure notifications for task assignments, deadlines, and project updates to ensure nothing slips through the cracks.
+  </Expandable>
+</ExpandableGroup>
+
+## Analytics
+
+Gain valuable insights into your team's performance and project health with our comprehensive analytics suite. Track metrics such as task completion times, team productivity, and project timelines.
+
+<CodeGroup tabs="Dashboard,Reports">
+  ````javascript
+  // Access analytics via API
+const analytics = client.analytics.get({
+  projectId: 'project-123',
+  metrics: ['completion_rate', 'average_time']
+});
+
+console.log('Project metrics:', analytics);
+  ````
+  ````javascript
+  // Generate custom reports
+const report = client.reports.create({
+  type: 'productivity',
+  dateRange: 'last_month',
+  filters: { team: 'engineering' }
+});
+
+console.log('Report generated:', report.id);
+  ````
+</CodeGroup>
+
+<Callout kind="success">Analytics data helps identify trends and optimize workflows for better results.</Callout>
+
+## Integrations
+
+Extend the functionality of Flame It Up by integrating with popular tools and services. Our API supports webhooks and OAuth for seamless connections.
+
+<Steps>
+  <Step title="Choose Integration" icon="settings">
+    Select from our list of supported integrations.
+  </Step>
+  <Step title="Authenticate" icon="key">
+    Provide credentials and authorize access.
+  </Step>
+  <Step title="Configure" icon="tool">
+    Set up triggers and data mappings.
+  </Step>
+  <Step title="Test" icon="check-circle">
+    Verify the integration works correctly.
+  </Step>
+</Steps>
+
+<Update label="2024-09-15" description="v2.0.0" tags={["feature", "integration"]}>
+  ## New Features
+  - Added Slack integration for real-time notifications
+  - Introduced custom dashboard widgets
+  - Enhanced API with new endpoints for analytics
+</Update>
+
+<Update label="2024-08-20" description="v1.5.0" tags={["improvement"]}>
+  ## Improvements
+  - Improved task assignment workflow
+  - Added bulk operations for managing multiple tasks
+</Update>
