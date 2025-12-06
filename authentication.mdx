@@ -1,0 +1,259 @@
+---
+title: Authentication
+description: Learn how to authenticate your API requests with Flare
+---
+
+## Authentication Overview
+
+Flare uses API keys to authenticate requests. Each API key is scoped to a specific workspace and has granular permissions that control what operations it can perform.
+
+<Callout kind="warning">Keep your API keys secure. Never expose them in client-side code, public repositories, or logs. If a key is compromised, revoke it immediately from your dashboard.</Callout>
+
+## API Key Format
+
+Flare API keys follow this format:
+
+```
+flare_{workspace_id}_{random_string}
+```
+
+For example:
+- `flare_ws_abc123_8f4e2a1b9c3d4e5f6a7b8c9d`
+
+The key includes your workspace ID, so you don't need to specify it separately when making requests.
+
+## Authentication Methods
+
+### X-API-Key Header (Recommended)
+
+Pass your API key in the `X-API-Key` header:
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  'https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people',
+  {
+    method: 'GET',
+    headers: {
+      'X-API-Key': 'flare_live_your_api_key_here'
+    }
+  }
+);
+```
+
+```python
+import requests
+
+response = requests.get(
+    'https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people',
+    headers={
+        'X-API-Key': 'flare_live_your_api_key_here'
+    }
+)
+```
+
+```bash
+curl -X GET "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people" \
+  -H "X-API-Key: flare_live_your_api_key_here"
+```
+</CodeGroup>
+
+## API Key Environments
+
+Flare provides two environments for your API keys:
+
+<Columns cols={2}>
+  <Card title="Live Keys" icon="check-circle">
+    **Format:** `flare_live_...`
+
+    Use for production applications. Events and data are stored permanently.
+  </Card>
+  <Card title="Test Keys" icon="flask">
+    **Format:** `flare_test_...`
+
+    Use for development and testing. Safe for experimentation.
+  </Card>
+</Columns>
+
+<Callout kind="info">Test and live environments are completely isolated. Data created with test keys won't appear in your live environment.</Callout>
+
+## Permissions
+
+API keys have granular permissions that control access to different resources:
+
+### Permission Categories
+
+| Category | Permissions | Description |
+|----------|-------------|-------------|
+| **Events** | `events:read`, `events:write` | Read and track user events |
+| **People** | `people:read`, `people:write` | Manage user profiles |
+| **Campaigns** | `campaigns:read`, `campaigns:write`, `campaigns:trigger` | Manage and trigger campaigns |
+| **Analytics** | `analytics:read`, `analytics:write` | Access reporting data |
+| **Segments** | `segments:read`, `segments:write` | Manage audience segments |
+| **Webhooks** | `webhooks:read`, `webhooks:write` | Configure webhooks |
+
+### Common Permission Sets
+
+<Tabs>
+  <Tab title="Read Only" icon="eye">
+    For dashboards and analytics that only need to view data:
+
+    ```json
+    {
+      "permissions": [
+        "events:read",
+        "people:read",
+        "campaigns:read",
+        "analytics:read"
+      ]
+    }
+    ```
+  </Tab>
+  <Tab title="Event Tracking" icon="activity">
+    For client applications that track user behavior:
+
+    ```json
+    {
+      "permissions": [
+        "events:write",
+        "people:write"
+      ]
+    }
+    ```
+  </Tab>
+  <Tab title="Full Access" icon="shield">
+    For backend services that need complete control:
+
+    ```json
+    {
+      "permissions": [
+        "events:read",
+        "events:write",
+        "people:read",
+        "people:write",
+        "campaigns:read",
+        "campaigns:write",
+        "campaigns:trigger"
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Creating API Keys
+
+<Steps>
+  <Step title="Open Dashboard" icon="layout">
+    Log in to your [Flare Dashboard](https://app.flameup.ai) and navigate to Settings > API Keys.
+  </Step>
+  <Step title="Create New Key" icon="plus">
+    Click "Create API Key" and provide:
+    - **Name**: A descriptive name (e.g., "Backend Server", "Mobile App")
+    - **Environment**: Live or Test
+    - **Permissions**: Select the required permissions
+    - **Expiration** (optional): Set an expiry date
+    - **IP Whitelist** (optional): Restrict to specific IPs
+  </Step>
+  <Step title="Copy Your Key" icon="copy">
+    Copy the full API key immediately. For security, the full key is only shown once.
+  </Step>
+</Steps>
+
+<Callout kind="warning">The full API key is only displayed once when created. Store it securely - you cannot retrieve it later.</Callout>
+
+## Security Features
+
+### IP Whitelisting
+
+Restrict API key usage to specific IP addresses or CIDR ranges:
+
+```json
+{
+  "ip_whitelist": [
+    "192.168.1.100",
+    "10.0.0.0/8",
+    "2001:db8::/32"
+  ]
+}
+```
+
+### Key Expiration
+
+Set an expiration date for API keys that should only be valid for a limited time:
+
+```json
+{
+  "expires_at": "2025-12-31T23:59:59Z"
+}
+```
+
+### Key Rotation
+
+Regularly rotate your API keys for security. Use the refresh endpoint to generate a new key while maintaining the same permissions:
+
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/api-keys/{key_id}/refresh" \
+  -H "Authorization: Bearer {dashboard_token}"
+```
+
+## Error Responses
+
+### 401 Unauthorized
+
+Returned when no API key is provided or the key is invalid:
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "Invalid or missing API key"
+  }
+}
+```
+
+### 403 Forbidden
+
+Returned when the API key doesn't have the required permissions:
+
+```json
+{
+  "error": {
+    "code": "forbidden",
+    "message": "API key lacks required permission: people:write"
+  }
+}
+```
+
+### 429 Too Many Requests
+
+Returned when rate limits are exceeded:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Retry after 60 seconds.",
+    "retry_after": 60
+  }
+}
+```
+
+## Best Practices
+
+<ExpandableGroup>
+  <Expandable title="Use Environment-Specific Keys" default-open="true">
+    Create separate API keys for development, staging, and production. Never use production keys in development environments.
+  </Expandable>
+  <Expandable title="Apply Least Privilege" default-open="false">
+    Only grant the minimum permissions required. A key that only needs to track events shouldn't have campaign management permissions.
+  </Expandable>
+  <Expandable title="Rotate Keys Regularly" default-open="false">
+    Rotate API keys periodically, especially for production systems. This limits the impact if a key is compromised.
+  </Expandable>
+  <Expandable title="Use IP Whitelisting" default-open="false">
+    For server-to-server communication, restrict API keys to known IP addresses to prevent unauthorized access.
+  </Expandable>
+  <Expandable title="Monitor Key Usage" default-open="false">
+    Regularly review API key usage in your dashboard to detect unusual patterns that might indicate compromise.
+  </Expandable>
+</ExpandableGroup>

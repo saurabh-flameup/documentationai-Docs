@@ -1,0 +1,413 @@
+---
+title: Error Handling
+description: Understanding and handling Flare API errors
+---
+
+## Error Response Format
+
+All Flare API errors follow a consistent format:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "error_code",
+    "message": "Human-readable error message",
+    "details": {
+      // Additional context (optional)
+    }
+  }
+}
+```
+
+## HTTP Status Codes
+
+Flare uses standard HTTP status codes:
+
+| Code | Meaning | Description |
+|------|---------|-------------|
+| `200` | OK | Request succeeded |
+| `201` | Created | Resource created successfully |
+| `204` | No Content | Request succeeded (no response body) |
+| `400` | Bad Request | Invalid request parameters |
+| `401` | Unauthorized | Missing or invalid API key |
+| `403` | Forbidden | Insufficient permissions |
+| `404` | Not Found | Resource doesn't exist |
+| `409` | Conflict | Resource already exists |
+| `422` | Unprocessable Entity | Validation failed |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Server-side error |
+| `503` | Service Unavailable | Temporary unavailability |
+
+## Common Error Codes
+
+### Authentication Errors
+
+<ExpandableGroup>
+  <Expandable title="unauthorized" default-open="true">
+    **HTTP Status:** 401
+
+    API key is missing or invalid.
+
+    ```json
+    {
+      "error": {
+        "code": "unauthorized",
+        "message": "Invalid or missing API key"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Verify the API key is correct
+    - Check the `X-API-Key` header is set
+    - Ensure the key hasn't been revoked
+  </Expandable>
+  <Expandable title="forbidden" default-open="false">
+    **HTTP Status:** 403
+
+    API key lacks required permission.
+
+    ```json
+    {
+      "error": {
+        "code": "forbidden",
+        "message": "API key lacks required permission: people:write"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Check the API key's permissions in your dashboard
+    - Create a new key with the required permissions
+  </Expandable>
+  <Expandable title="key_expired" default-open="false">
+    **HTTP Status:** 401
+
+    API key has expired.
+
+    ```json
+    {
+      "error": {
+        "code": "key_expired",
+        "message": "API key expired on 2024-01-15"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Create a new API key
+    - Update the expiration date in your dashboard
+  </Expandable>
+  <Expandable title="ip_not_allowed" default-open="false">
+    **HTTP Status:** 403
+
+    Request from IP not in whitelist.
+
+    ```json
+    {
+      "error": {
+        "code": "ip_not_allowed",
+        "message": "IP address 192.168.1.100 not in whitelist"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Add the IP to the key's whitelist
+    - Remove IP restrictions if not needed
+  </Expandable>
+</ExpandableGroup>
+
+### Resource Errors
+
+<ExpandableGroup>
+  <Expandable title="not_found" default-open="true">
+    **HTTP Status:** 404
+
+    The requested resource doesn't exist.
+
+    ```json
+    {
+      "error": {
+        "code": "not_found",
+        "message": "Person with ID 'xyz' not found"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Verify the resource ID is correct
+    - Check you're using the right workspace
+  </Expandable>
+  <Expandable title="already_exists" default-open="false">
+    **HTTP Status:** 409
+
+    Resource already exists (for unique constraints).
+
+    ```json
+    {
+      "error": {
+        "code": "already_exists",
+        "message": "Person with email 'user@example.com' already exists"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Use the upsert endpoint instead
+    - Fetch and update the existing resource
+  </Expandable>
+  <Expandable title="workspace_not_found" default-open="false">
+    **HTTP Status:** 404
+
+    The workspace doesn't exist or you don't have access.
+
+    ```json
+    {
+      "error": {
+        "code": "workspace_not_found",
+        "message": "Workspace 'ws_abc123' not found"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Verify the workspace ID
+    - Check your API key has access to this workspace
+  </Expandable>
+</ExpandableGroup>
+
+### Validation Errors
+
+<ExpandableGroup>
+  <Expandable title="validation_error" default-open="true">
+    **HTTP Status:** 422
+
+    Request body failed validation.
+
+    ```json
+    {
+      "error": {
+        "code": "validation_error",
+        "message": "Validation failed",
+        "details": {
+          "fields": {
+            "email": "Invalid email format",
+            "userId": "Required field"
+          }
+        }
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Check the request body matches the API spec
+    - Validate data before sending
+  </Expandable>
+  <Expandable title="invalid_parameter" default-open="false">
+    **HTTP Status:** 400
+
+    A query parameter or path parameter is invalid.
+
+    ```json
+    {
+      "error": {
+        "code": "invalid_parameter",
+        "message": "Invalid value for 'limit': must be between 1 and 100"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Check parameter constraints in the API docs
+    - Use valid values for enums and ranges
+  </Expandable>
+  <Expandable title="batch_limit_exceeded" default-open="false">
+    **HTTP Status:** 400
+
+    Too many items in a batch request.
+
+    ```json
+    {
+      "error": {
+        "code": "batch_limit_exceeded",
+        "message": "Maximum 100 people per batch request"
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Split the batch into smaller chunks
+    - Process up to 100 items per request
+  </Expandable>
+</ExpandableGroup>
+
+### Rate Limiting Errors
+
+<ExpandableGroup>
+  <Expandable title="rate_limit_exceeded" default-open="true">
+    **HTTP Status:** 429
+
+    Too many requests in a time window.
+
+    ```json
+    {
+      "error": {
+        "code": "rate_limit_exceeded",
+        "message": "Rate limit exceeded. Retry after 60 seconds.",
+        "details": {
+          "retry_after": 60,
+          "limit": 1000,
+          "remaining": 0,
+          "reset_at": "2024-01-15T10:31:00Z"
+        }
+      }
+    }
+    ```
+
+    **Solutions:**
+    - Wait for the `retry_after` period
+    - Implement exponential backoff
+    - Consider upgrading your plan for higher limits
+  </Expandable>
+</ExpandableGroup>
+
+## Error Handling Best Practices
+
+### Retry Strategy
+
+Implement exponential backoff for transient errors:
+
+<CodeGroup>
+```javascript
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+
+      if (response.ok) {
+        return response.json();
+      }
+
+      const error = await response.json();
+
+      // Don't retry client errors (except rate limits)
+      if (response.status >= 400 && response.status < 500) {
+        if (response.status === 429) {
+          // Rate limited - wait and retry
+          const retryAfter = error.error?.details?.retry_after || 60;
+          await sleep(retryAfter * 1000);
+          continue;
+        }
+        throw new FlareError(error);
+      }
+
+      // Server error - retry with backoff
+      if (attempt < maxRetries - 1) {
+        await sleep(Math.pow(2, attempt) * 1000);
+        continue;
+      }
+
+      throw new FlareError(error);
+
+    } catch (networkError) {
+      if (attempt < maxRetries - 1) {
+        await sleep(Math.pow(2, attempt) * 1000);
+        continue;
+      }
+      throw networkError;
+    }
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+```
+
+```python
+import time
+import requests
+
+def fetch_with_retry(url, options, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            response = requests.request(**options, url=url)
+
+            if response.ok:
+                return response.json()
+
+            error = response.json()
+
+            # Don't retry client errors (except rate limits)
+            if 400 <= response.status_code < 500:
+                if response.status_code == 429:
+                    retry_after = error.get('error', {}).get('details', {}).get('retry_after', 60)
+                    time.sleep(retry_after)
+                    continue
+                raise FlareError(error)
+
+            # Server error - retry with backoff
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+
+            raise FlareError(error)
+
+        except requests.RequestException:
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+            raise
+```
+</CodeGroup>
+
+### Error Logging
+
+Log errors with context for debugging:
+
+```javascript
+function logError(error, context) {
+  console.error('Flare API Error', {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    context: {
+      endpoint: context.endpoint,
+      method: context.method,
+      userId: context.userId,
+      timestamp: new Date().toISOString()
+    }
+  });
+}
+```
+
+### User-Friendly Messages
+
+Map error codes to user-friendly messages:
+
+```javascript
+const ERROR_MESSAGES = {
+  unauthorized: 'Please check your API credentials',
+  forbidden: 'You don\'t have permission for this action',
+  not_found: 'The requested item was not found',
+  validation_error: 'Please check your input and try again',
+  rate_limit_exceeded: 'Too many requests. Please wait a moment.',
+  default: 'Something went wrong. Please try again.'
+};
+
+function getUserMessage(errorCode) {
+  return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.default;
+}
+```
+
+## Debugging Tips
+
+<Callout kind="tip">Use these tips to debug API issues:</Callout>
+
+1. **Check the response body** - Error details are always in the response
+2. **Verify API key permissions** - Most 403 errors are permission issues
+3. **Validate request format** - Use the API reference for correct schemas
+4. **Check rate limit headers** - Monitor `X-RateLimit-*` headers
+5. **Use test environment** - Debug in test before going to production

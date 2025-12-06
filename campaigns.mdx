@@ -1,0 +1,596 @@
+---
+title: Campaigns
+description: Create automated messaging campaigns triggered by events, schedules, or API calls
+---
+
+## Overview
+
+Campaigns are automated messaging workflows that send push notifications to your users based on triggers. Flare supports multiple trigger types to cover different use cases.
+
+<Callout kind="info">**Required Permissions**: `campaigns:read` to view, `campaigns:write` to create/modify, `campaigns:trigger` to manually trigger.</Callout>
+
+## Campaign Object
+
+A campaign in Flare has the following structure:
+
+```json
+{
+  "id": "camp_550e8400e29b41d4a716446655440000",
+  "workspace_id": "ws_abc123",
+  "name": "Welcome Series",
+  "status": "active",
+  "trigger_type": "event",
+  "trigger_config": {
+    "event_name": "signed_up",
+    "delay_seconds": 300
+  },
+  "audience_config": {
+    "segments": ["all_users"],
+    "filters": {}
+  },
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-20T14:45:00Z"
+}
+```
+
+## Trigger Types
+
+Flare supports four types of campaign triggers:
+
+<Tabs>
+  <Tab title="Event" icon="activity">
+    **Trigger when a user performs an action**
+
+    Event-triggered campaigns start when a user performs a specific event. Perfect for:
+    - Welcome messages after signup
+    - Order confirmations
+    - Feature adoption nudges
+    - Re-engagement after inactivity
+
+    ```json
+    {
+      "trigger_type": "event",
+      "trigger_config": {
+        "event_name": "signed_up",
+        "delay_seconds": 0,
+        "conditions": {
+          "plan": "free"
+        }
+      }
+    }
+    ```
+
+    | Field | Type | Description |
+    |-------|------|-------------|
+    | `event_name` | string | The event that triggers the campaign |
+    | `delay_seconds` | integer | Wait time before sending (0 = immediate) |
+    | `conditions` | object | Event property conditions (optional) |
+  </Tab>
+  <Tab title="Webhook" icon="zap">
+    **Trigger via API call**
+
+    Webhook-triggered campaigns are started by calling the trigger endpoint. Perfect for:
+    - Backend-initiated notifications
+    - Third-party integrations
+    - Custom workflow triggers
+    - Testing and debugging
+
+    ```json
+    {
+      "trigger_type": "webhook",
+      "trigger_config": {
+        "auth_required": true
+      }
+    }
+    ```
+
+    To trigger:
+    ```bash
+    POST /api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}/trigger
+    ```
+  </Tab>
+  <Tab title="Schedule" icon="clock">
+    **Trigger at specific times**
+
+    Scheduled campaigns run at defined times. Perfect for:
+    - Daily/weekly digests
+    - Promotional announcements
+    - Holiday campaigns
+    - Regular check-ins
+
+    ```json
+    {
+      "trigger_type": "schedule",
+      "trigger_config": {
+        "cron": "0 9 * * MON",
+        "timezone": "America/New_York"
+      }
+    }
+    ```
+
+    | Field | Type | Description |
+    |-------|------|-------------|
+    | `cron` | string | Cron expression for schedule |
+    | `timezone` | string | IANA timezone for schedule |
+  </Tab>
+  <Tab title="Dynamic Schedule" icon="calendar">
+    **Trigger based on user attributes**
+
+    Dynamic schedules trigger based on user-specific dates. Perfect for:
+    - Birthday messages
+    - Subscription renewal reminders
+    - Trial expiration notices
+    - Anniversary celebrations
+
+    ```json
+    {
+      "trigger_type": "dynamic_schedule",
+      "trigger_config": {
+        "attribute": "trial_ends_at",
+        "offset_days": -3,
+        "time": "10:00",
+        "timezone_attribute": "timezone"
+      }
+    }
+    ```
+
+    | Field | Type | Description |
+    |-------|------|-------------|
+    | `attribute` | string | User attribute containing the date |
+    | `offset_days` | integer | Days before (-) or after (+) the date |
+    | `time` | string | Time to send (HH:MM format) |
+    | `timezone_attribute` | string | User attribute for timezone |
+  </Tab>
+</Tabs>
+
+## Create a Campaign
+
+Create a new campaign.
+
+**Endpoint:** `POST /api/v1/workspaces/{workspace_id}/campaigns`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      name: 'Welcome Series',
+      trigger_type: 'event',
+      trigger_config: {
+        event_name: 'signed_up',
+        delay_seconds: 300  // 5 minutes after signup
+      },
+      messages: [
+        {
+          type: 'push',
+          template: {
+            title: 'Welcome to {{app_name}}!',
+            body: 'Hi {{first_name}}, thanks for joining us.',
+            data: {
+              action: 'open_onboarding'
+            }
+          }
+        }
+      ]
+    })
+  }
+);
+
+const campaign = await response.json();
+```
+
+```python
+response = requests.post(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/campaigns',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'name': 'Welcome Series',
+        'trigger_type': 'event',
+        'trigger_config': {
+            'event_name': 'signed_up',
+            'delay_seconds': 300
+        },
+        'messages': [
+            {
+                'type': 'push',
+                'template': {
+                    'title': 'Welcome to {{app_name}}!',
+                    'body': 'Hi {{first_name}}, thanks for joining us.',
+                    'data': {
+                        'action': 'open_onboarding'
+                    }
+                }
+            }
+        ]
+    }
+)
+
+campaign = response.json()
+```
+
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/campaigns" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "name": "Welcome Series",
+    "trigger_type": "event",
+    "trigger_config": {
+      "event_name": "signed_up",
+      "delay_seconds": 300
+    },
+    "messages": [{
+      "type": "push",
+      "template": {
+        "title": "Welcome to {{app_name}}!",
+        "body": "Hi {{first_name}}, thanks for joining us."
+      }
+    }]
+  }'
+```
+</CodeGroup>
+
+## List Campaigns
+
+Retrieve all campaigns in a workspace.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/campaigns`
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | Filter by status: `draft`, `active`, `paused`, `completed` |
+| `trigger_type` | string | Filter by trigger type |
+| `limit` | integer | Number of results (default 20) |
+| `offset` | integer | Pagination offset |
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns?status=active`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const { campaigns, total } = await response.json();
+```
+
+```python
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/campaigns',
+    headers={'X-API-Key': API_KEY},
+    params={'status': 'active'}
+)
+
+data = response.json()
+campaigns = data['campaigns']
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/campaigns?status=active" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Get Campaign Details
+
+Retrieve a specific campaign.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns/${campaignId}`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const campaign = await response.json();
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Update a Campaign
+
+Modify an existing campaign.
+
+**Endpoint:** `PUT /api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns/${campaignId}`,
+  {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      name: 'Welcome Series v2',
+      trigger_config: {
+        event_name: 'signed_up',
+        delay_seconds: 600  // Changed to 10 minutes
+      }
+    })
+  }
+);
+```
+
+```bash
+curl -X PUT "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{"name": "Welcome Series v2"}'
+```
+</CodeGroup>
+
+## Campaign Status
+
+Campaigns have a status lifecycle:
+
+<Steps>
+  <Step title="Draft" icon="edit">
+    Initial state. Campaign is not active and won't trigger.
+  </Step>
+  <Step title="Active" icon="play">
+    Campaign is live and will trigger based on its configuration.
+  </Step>
+  <Step title="Paused" icon="pause">
+    Campaign is temporarily stopped. Can be resumed.
+  </Step>
+  <Step title="Completed" icon="check">
+    Campaign has finished (for one-time campaigns) or been archived.
+  </Step>
+</Steps>
+
+### Activate a Campaign
+
+```javascript
+await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns/${campaignId}/activate`,
+  {
+    method: 'POST',
+    headers: { 'X-API-Key': API_KEY }
+  }
+);
+```
+
+### Pause a Campaign
+
+```javascript
+await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns/${campaignId}/pause`,
+  {
+    method: 'POST',
+    headers: { 'X-API-Key': API_KEY }
+  }
+);
+```
+
+## Trigger a Campaign Manually
+
+For webhook-triggered campaigns, or to test any campaign:
+
+**Endpoint:** `POST /api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}/trigger`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/campaigns/${campaignId}/trigger`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      // Target specific users
+      user_ids: ['user_123', 'user_456'],
+
+      // Or use filters
+      filters: {
+        plan: 'premium'
+      },
+
+      // Custom data for personalization
+      data: {
+        promo_code: 'SAVE20',
+        expires: '2024-02-01'
+      }
+    })
+  }
+);
+
+const result = await response.json();
+console.log(`Triggered for ${result.recipients_count} users`);
+```
+
+```python
+response = requests.post(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/campaigns/{campaign_id}/trigger',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'user_ids': ['user_123', 'user_456'],
+        'data': {
+            'promo_code': 'SAVE20'
+        }
+    }
+)
+
+result = response.json()
+```
+
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}/trigger" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "user_ids": ["user_123", "user_456"],
+    "data": {"promo_code": "SAVE20"}
+  }'
+```
+</CodeGroup>
+
+## Message Templates
+
+Campaign messages support personalization with Handlebars-style templates:
+
+```json
+{
+  "template": {
+    "title": "Hi {{first_name}}!",
+    "body": "Your order #{{order_id}} has shipped!",
+    "data": {
+      "order_id": "{{order_id}}",
+      "action": "track_order"
+    }
+  }
+}
+```
+
+### Available Variables
+
+| Variable | Source | Description |
+|----------|--------|-------------|
+| `{{first_name}}` | Person | User's first name |
+| `{{last_name}}` | Person | User's last name |
+| `{{email}}` | Person | User's email |
+| `{{attributes.*}}` | Person | Any user attribute |
+| `{{event.*}}` | Event | Event properties (event triggers) |
+| `{{data.*}}` | Trigger | Custom trigger data |
+
+### Fallback Values
+
+Provide fallbacks for missing data:
+
+```
+{{first_name|default:"there"}}
+```
+
+## Campaign Examples
+
+<ExpandableGroup>
+  <Expandable title="Welcome Series" default-open="true">
+    Send a welcome message 5 minutes after signup:
+
+    ```json
+    {
+      "name": "Welcome Series",
+      "trigger_type": "event",
+      "trigger_config": {
+        "event_name": "signed_up",
+        "delay_seconds": 300
+      },
+      "messages": [{
+        "type": "push",
+        "template": {
+          "title": "Welcome to Acme!",
+          "body": "Hi {{first_name}}, we're excited to have you!"
+        }
+      }]
+    }
+    ```
+  </Expandable>
+  <Expandable title="Abandoned Cart" default-open="false">
+    Remind users about items in their cart after 1 hour:
+
+    ```json
+    {
+      "name": "Abandoned Cart Reminder",
+      "trigger_type": "event",
+      "trigger_config": {
+        "event_name": "cart_updated",
+        "delay_seconds": 3600,
+        "cancel_on_event": "purchase_completed"
+      },
+      "messages": [{
+        "type": "push",
+        "template": {
+          "title": "You left something behind!",
+          "body": "Complete your purchase before it's gone."
+        }
+      }]
+    }
+    ```
+  </Expandable>
+  <Expandable title="Weekly Digest" default-open="false">
+    Send a weekly summary every Monday at 9 AM:
+
+    ```json
+    {
+      "name": "Weekly Digest",
+      "trigger_type": "schedule",
+      "trigger_config": {
+        "cron": "0 9 * * MON",
+        "timezone": "America/New_York"
+      },
+      "messages": [{
+        "type": "push",
+        "template": {
+          "title": "Your Weekly Summary",
+          "body": "See what happened this week!"
+        }
+      }]
+    }
+    ```
+  </Expandable>
+  <Expandable title="Trial Expiration" default-open="false">
+    Remind users 3 days before their trial ends:
+
+    ```json
+    {
+      "name": "Trial Expiration Reminder",
+      "trigger_type": "dynamic_schedule",
+      "trigger_config": {
+        "attribute": "trial_ends_at",
+        "offset_days": -3,
+        "time": "10:00",
+        "timezone_attribute": "timezone"
+      },
+      "messages": [{
+        "type": "push",
+        "template": {
+          "title": "Your trial ends soon!",
+          "body": "Upgrade now to keep your data."
+        }
+      }]
+    }
+    ```
+  </Expandable>
+</ExpandableGroup>
+
+## Delete a Campaign
+
+**Endpoint:** `DELETE /api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}`
+
+<Callout kind="warning">Deleting a campaign is permanent. Consider pausing instead if you may want to resume later.</Callout>
+
+```bash
+curl -X DELETE "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/campaigns/{campaign_id}" \
+  -H "X-API-Key: your_api_key"
+```

@@ -1,103 +1,1049 @@
-openapi: '3.0.0'
+openapi: 3.0.3
 info:
+  title: Flare API
+  description: |
+    The Flare API enables you to manage user profiles, track events, and send push notifications.
+
+    ## Authentication
+    All requests require an API key passed in the `X-API-Key` header.
+
+    ## Base URL
+    ```
+    https://api.flameup.ai/api/v1
+    ```
   version: 1.0.0
-  title: Flameup API
+  contact:
+    name: Flare Support
+    url: https://flameup.ai/support
   license:
-    name: MIT
+    name: Proprietary
+
 servers:
-  - url: http://flameup.example.com/v1
+  - url: https://api.flameup.ai/api/v1
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: People
+    description: Manage user profiles
+  - name: Events
+    description: Track user events
+  - name: Devices
+    description: Manage push notification device tokens
+  - name: Campaigns
+    description: Manage messaging campaigns
+  - name: Transactional
+    description: Send one-off messages
+
 paths:
-  /flames:
+  /workspaces/{workspaceId}/people:
     get:
-      summary: Retrieve a list of all flames in the system
-      operationId: listFlames
+      tags:
+        - People
+      summary: List people
+      description: Retrieve a paginated list of people in the workspace.
+      operationId: listPeople
       parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
         - name: limit
           in: query
-          description: Specify the maximum number of flames to return, with a maximum limit of 100 items per request
-          required: false
+          description: Number of results (max 100)
           schema:
             type: integer
-            format: int32
-      responses:
-        200:
-          description: Successfully returns a paginated collection of flames with detailed information
-          headers:
-            x-next:
-              description: Provides a direct link to access the next set of results for pagination
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Flames'
-        default:
-          description: Indicates an unexpected error occurred during the request processing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    post:
-      summary: Create a new flame entry in the system
-      operationId: createFlames
-      responses:
-        201:
-          description: Successfully created a new flame resource
-        default:
-          description: Indicates an unexpected error occurred during the creation process
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /flames/{flameId}:
-    get:
-      summary: Fetch detailed information for a specific flame using its unique identifier
-      operationId: showFlameById
-      parameters:
-        - name: flameId
-          in: path
-          required: true
-          description: The unique identifier of the flame to retrieve from the system
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [active, unsubscribed, bounced]
+        - name: search
+          in: query
+          description: Search by name or email
           schema:
             type: string
       responses:
-        200:
-          description: Successfully retrieved the flame details matching the provided identifier
+        '200':
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Flames'
-        default:
-          description: Indicates an unexpected error occurred while fetching the flame information
+                type: object
+                properties:
+                  people:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Person'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - People
+      summary: Create person
+      description: Create a new person profile.
+      operationId: createPerson
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePersonRequest'
+      responses:
+        '201':
+          description: Person created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Person'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /workspaces/{workspaceId}/people/{personId}:
+    get:
+      tags:
+        - People
+      summary: Get person
+      description: Retrieve a person by ID.
+      operationId: getPerson
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/PersonId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - People
+      summary: Update person
+      description: Update a person's attributes.
+      operationId: updatePerson
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/PersonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePersonRequest'
+      responses:
+        '200':
+          description: Person updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - People
+      summary: Delete person
+      description: Delete a person and all associated data.
+      operationId: deletePerson
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/PersonId'
+      responses:
+        '204':
+          description: Person deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /workspaces/{workspaceId}/people/upsert:
+    post:
+      tags:
+        - People
+      summary: Upsert person
+      description: Create or update a person based on external_id or email.
+      operationId: upsertPerson
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePersonRequest'
+      responses:
+        '200':
+          description: Person upserted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Person'
+                  - type: object
+                    properties:
+                      was_created:
+                        type: boolean
+                        description: True if person was created, false if updated
+
+  /workspaces/{workspaceId}/people/batch:
+    post:
+      tags:
+        - People
+      summary: Batch upsert people
+      description: Create or update multiple people (max 100).
+      operationId: batchUpsertPeople
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - people
+              properties:
+                people:
+                  type: array
+                  maxItems: 100
+                  items:
+                    $ref: '#/components/schemas/CreatePersonRequest'
+      responses:
+        '200':
+          description: Batch completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  people:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Person'
+                  created_count:
+                    type: integer
+                  updated_count:
+                    type: integer
+
+  /workspaces/{workspaceId}/people/search:
+    get:
+      tags:
+        - People
+      summary: Search people
+      description: Search for people by specific criteria.
+      operationId: searchPeople
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: q
+          in: query
+          description: General search query
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Exact email match
+          schema:
+            type: string
+        - name: external_id
+          in: query
+          description: Exact external_id match
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  people:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Person'
+
+  /workspaces/{workspaceId}/people/stats:
+    get:
+      tags:
+        - People
+      summary: Get people statistics
+      description: Get aggregate statistics for people in the workspace.
+      operationId: getPeopleStats
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  active:
+                    type: integer
+                  unsubscribed:
+                    type: integer
+                  bounced:
+                    type: integer
+                  recent:
+                    type: integer
+
+  /workspaces/{workspaceId}/people/{personId}/events:
+    get:
+      tags:
+        - People
+      summary: Get person events
+      description: Retrieve events for a specific person.
+      operationId: getPersonEvents
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/PersonId'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+
+  /workspaces/{workspaceId}/events:
+    get:
+      tags:
+        - Events
+      summary: List events
+      description: Retrieve events in the workspace.
+      operationId: listEvents
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: user_id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: string
+        - name: event
+          in: query
+          description: Filter by event name
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Events after this time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: until
+          in: query
+          description: Events before this time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  total:
+                    type: integer
+    post:
+      tags:
+        - Events
+      summary: Track event
+      description: Record a user event.
+      operationId: trackEvent
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrackEventRequest'
+      responses:
+        '200':
+          description: Event tracked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  event_id:
+                    type: string
+
+  /workspaces/{workspaceId}/devices:
+    get:
+      tags:
+        - Devices
+      summary: List devices
+      description: Retrieve device tokens for the workspace.
+      operationId: listDevices
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: person_id
+          in: query
+          description: Filter by person
+          schema:
+            type: string
+            format: uuid
+        - name: platform
+          in: query
+          description: Filter by platform
+          schema:
+            type: string
+            enum: [ios, android, web]
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Device list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+    post:
+      tags:
+        - Devices
+      summary: Register device
+      description: Register a device token for push notifications.
+      operationId: registerDevice
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDeviceRequest'
+      responses:
+        '201':
+          description: Device registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+
+  /workspaces/{workspaceId}/devices/{deviceId}:
+    put:
+      tags:
+        - Devices
+      summary: Update device
+      description: Update device information.
+      operationId: updateDevice
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                app_version:
+                  type: string
+                os_version:
+                  type: string
+      responses:
+        '200':
+          description: Device updated
+    delete:
+      tags:
+        - Devices
+      summary: Delete device
+      description: Remove a device token.
+      operationId: deleteDevice
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Device deleted
+
+  /workspaces/{workspaceId}/campaigns:
+    get:
+      tags:
+        - Campaigns
+      summary: List campaigns
+      description: Retrieve campaigns in the workspace.
+      operationId: listCampaigns
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, paused, completed]
+        - name: trigger_type
+          in: query
+          schema:
+            type: string
+            enum: [event, webhook, schedule, dynamic_schedule]
+      responses:
+        '200':
+          description: Campaign list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaigns:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Campaign'
+                  total:
+                    type: integer
+    post:
+      tags:
+        - Campaigns
+      summary: Create campaign
+      description: Create a new campaign.
+      operationId: createCampaign
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}:
+    get:
+      tags:
+        - Campaigns
+      summary: Get campaign
+      operationId: getCampaign
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+    put:
+      tags:
+        - Campaigns
+      summary: Update campaign
+      operationId: updateCampaign
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/CampaignId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCampaignRequest'
+      responses:
+        '200':
+          description: Campaign updated
+    delete:
+      tags:
+        - Campaigns
+      summary: Delete campaign
+      operationId: deleteCampaign
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '204':
+          description: Campaign deleted
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/trigger:
+    post:
+      tags:
+        - Campaigns
+      summary: Trigger campaign
+      description: Manually trigger a campaign for specific users.
+      operationId: triggerCampaign
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/CampaignId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                filters:
+                  type: object
+                data:
+                  type: object
+      responses:
+        '200':
+          description: Campaign triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  recipients_count:
+                    type: integer
+
+  /workspaces/{workspaceId}/transactional/send:
+    post:
+      tags:
+        - Transactional
+      summary: Send transactional message
+      description: Send a one-off push notification to a user.
+      operationId: sendTransactional
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionalRequest'
+      responses:
+        '200':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message_id:
+                    type: string
+                  delivered_to:
+                    type: array
+                    items:
+                      type: string
+                      enum: [ios, android, web]
+                  devices_count:
+                    type: integer
+
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Your Flare API key
+
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      description: Workspace ID
+      schema:
+        type: string
+    PersonId:
+      name: personId
+      in: path
+      required: true
+      description: Person ID (UUID)
+      schema:
+        type: string
+        format: uuid
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      description: Campaign ID
+      schema:
+        type: string
+
   schemas:
-    Flame:
-      required:
-        - id
-        - name
+    Person:
+      type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+        external_id:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        timezone:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          enum: [active, unsubscribed, bounced]
+        attributes:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        first_seen_at:
+          type: string
+          format: date-time
+        last_seen_at:
+          type: string
+          format: date-time
+
+    CreatePersonRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          description: Your unique identifier for this user
+        email:
+          type: string
+          format: email
+        traits:
+          type: object
+          description: User attributes
+          properties:
+            first_name:
+              type: string
+            last_name:
+              type: string
+            phone:
+              type: string
+            avatar_url:
+              type: string
+            timezone:
+              type: string
+            locale:
+              type: string
+          additionalProperties: true
+
+    UpdatePersonRequest:
+      type: object
+      properties:
+        traits:
+          type: object
+          description: Attributes to update (merged with existing)
+          additionalProperties: true
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        workspace_id:
+          type: string
+        person_id:
+          type: string
+          format: uuid
+        event:
+          type: string
+        properties:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    TrackEventRequest:
+      type: object
+      required:
+        - userId
+        - event
+      properties:
+        userId:
+          type: string
+          description: User identifier
+        event:
+          type: string
+          description: Event name
+        properties:
+          type: object
+          description: Event properties
+        timestamp:
+          type: string
+          format: date-time
+          description: When the event occurred (defaults to now)
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+        person_id:
+          type: string
+          format: uuid
+        device_token:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android, web]
+        device_name:
+          type: string
+        device_model:
+          type: string
+        os_version:
+          type: string
+        app_version:
+          type: string
+        is_active:
+          type: boolean
+        is_valid:
+          type: boolean
+        last_used_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    RegisterDeviceRequest:
+      type: object
+      required:
+        - person_id
+        - device_token
+        - platform
+      properties:
+        person_id:
+          type: string
+          format: uuid
+        device_token:
+          type: string
+          description: FCM/APNs token
+        platform:
+          type: string
+          enum: [ios, android, web]
+        device_name:
+          type: string
+        device_model:
+          type: string
+        os_version:
+          type: string
+        app_version:
+          type: string
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+        workspace_id:
+          type: string
         name:
           type: string
-        tag:
+        status:
           type: string
-    Flames:
-      type: array
-      items:
-        $ref: '#/components/schemas/Flame'
-    Error:
+          enum: [draft, active, paused, completed]
+        trigger_type:
+          type: string
+          enum: [event, webhook, schedule, dynamic_schedule]
+        trigger_config:
+          type: object
+        audience_config:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCampaignRequest:
+      type: object
       required:
-        - code
-        - message
+        - name
+        - trigger_type
       properties:
-        code:
-          type: integer
-          format: int32
-        message:
+        name:
           type: string
+        trigger_type:
+          type: string
+          enum: [event, webhook, schedule, dynamic_schedule]
+        trigger_config:
+          type: object
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [push]
+              template:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  body:
+                    type: string
+                  data:
+                    type: object
+
+    UpdateCampaignRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        trigger_config:
+          type: object
+        status:
+          type: string
+          enum: [draft, active, paused]
+
+    TransactionalRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          description: User's external_id or Flare person_id
+        template_id:
+          type: string
+          description: ID of a pre-defined template
+        template:
+          type: object
+          description: Inline template (if no template_id)
+          properties:
+            title:
+              type: string
+            body:
+              type: string
+            data:
+              type: object
+        data:
+          type: object
+          description: Variables for template personalization
+        platform:
+          type: string
+          enum: [ios, android, web, all]
+          description: Target platform (defaults to all)
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

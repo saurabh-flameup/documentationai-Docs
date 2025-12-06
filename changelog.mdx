@@ -1,46 +1,116 @@
 ---
 title: Changelog
-description: Release history and updates for Flame It Up
+description: Latest updates and improvements to the Flare API
 ---
 
-## Release History
+## Changelog
 
-<Update label="2024-10-15" description="v2.2.0" tags={["feature", "improvement"]}>
-## New Features
-- Introduced advanced analytics dashboard with customizable widgets
-- Added support for task dependencies and Gantt chart visualization
-- Implemented dark mode for improved user experience
+Stay up to date with the latest changes to Flare.
 
-## Improvements
-- Enhanced performance for large projects with 50% faster load times
-- Improved mobile responsiveness across all features
-- Streamlined onboarding process with interactive tutorials
+---
+
+<Update label="2024-12-07" description="v1.0.0 - General Availability" tags={["release", "feature"]}>
+## Flare API v1.0.0 - General Availability
+
+We're excited to announce the general availability of the Flare API!
+
+### People API
+- Create, read, update, and delete user profiles
+- Upsert operations for seamless create-or-update workflows
+- Batch operations supporting up to 100 people per request
+- Search and filter by email, external_id, status, and custom attributes
+- Statistics endpoint for aggregate metrics
+
+### Events API
+- Track user events with custom properties
+- Query events by user, event name, and time range
+- Events stored in ClickHouse for high-performance analytics
+
+### Devices API
+- Register device tokens for iOS, Android, and Web push
+- Automatic token lifecycle management
+- Support for device metadata (model, OS version, app version)
+
+### Campaigns
+- Event-triggered campaigns
+- Webhook-triggered campaigns (API-initiated)
+- Scheduled campaigns with cron expressions
+- Dynamic schedule campaigns based on user attributes
+- Template personalization with Handlebars syntax
+
+### Transactional Messaging
+- Send one-off push notifications via API
+- Support for inline templates or template IDs
+- Platform targeting (iOS, Android, Web, or all)
+
+### Authentication
+- API key authentication via `X-API-Key` header
+- Granular permissions system
+- IP whitelisting support
+- Key expiration and rotation
+
+### Developer Experience
+- Comprehensive API documentation
+- OpenAPI 3.0 specification
+- Code examples in JavaScript, Python, Swift, and Kotlin
+- Rate limiting with informative headers
 </Update>
 
-<Update label="2024-09-20" description="v2.1.0" tags={["feature", "integration"]}>
-## New Features
-- Launched Slack integration for real-time team notifications
-- Added Google Workspace connectivity for seamless file management
-- Introduced custom fields for flexible project customization
+---
 
-## Improvements
-- Optimized API response times with caching improvements
-- Enhanced search functionality with advanced filters
-- Updated user interface with modern design elements
-</Update>
+## Coming Soon
 
-<Update label="2024-08-10" description="v2.0.0" tags={["breaking", "feature"]}>
-## Breaking Changes
-- Migrated to new API version with updated authentication methods
-- Redesigned project structure requiring data migration for existing projects
+We're working on these features for upcoming releases:
 
-## New Features
-- Complete platform redesign with improved usability
-- Introduced team collaboration features including shared workspaces
-- Added comprehensive reporting and analytics capabilities
+### Email Channel
+Send transactional and campaign emails through Flare:
+- Email templates with rich HTML support
+- Delivery tracking and analytics
+- Bounce and complaint handling
 
-## Improvements
-- Significant performance enhancements across all modules
-- Enhanced security with advanced encryption and access controls
-- Expanded integration options with popular third-party services
-</Update>
+### Webhooks
+Receive real-time notifications for events in your workspace:
+- Campaign delivery events
+- User profile changes
+- Push delivery status
+
+### Segments API
+Create and manage audience segments programmatically:
+- Define segment criteria via API
+- Dynamic segment membership
+- Use segments in campaign targeting
+
+### Analytics API
+Query analytics data programmatically:
+- Campaign performance metrics
+- User engagement analytics
+- Event aggregations
+
+---
+
+## API Versioning
+
+The Flare API uses URL versioning. The current version is `v1`.
+
+```
+https://api.flameup.ai/api/v1/...
+```
+
+When we release breaking changes, we'll introduce a new API version (e.g., `v2`) while maintaining support for previous versions during a deprecation period.
+
+**Version Support Policy:**
+- New versions are announced at least 6 months before deprecation of old versions
+- Deprecated versions continue to work for at least 12 months after announcement
+- Security fixes are backported to supported versions
+
+---
+
+## Feedback
+
+Have feedback or feature requests? We'd love to hear from you:
+
+- **Documentation Issues**: Let us know if anything is unclear
+- **API Feedback**: Share your integration experience
+- **Feature Requests**: Tell us what you'd like to see next
+
+Contact us at support@flameup.ai.

@@ -1,0 +1,644 @@
+---
+title: People API
+description: Create, update, and manage user profiles with the Flare People API
+---
+
+## Overview
+
+The People API allows you to manage user profiles in Flare. Each person represents a user in your system with their contact information, attributes, and engagement history.
+
+<Callout kind="info">**Required Permission**: `people:read` for GET requests, `people:write` for POST/PUT/DELETE requests.</Callout>
+
+## Person Object
+
+A person in Flare has the following structure:
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "workspace_id": "ws_abc123",
+  "external_id": "user_12345",
+  "email": "jane@example.com",
+  "phone": "+1234567890",
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "avatar_url": "https://example.com/avatar.jpg",
+  "timezone": "America/New_York",
+  "locale": "en-US",
+  "status": "active",
+  "attributes": {
+    "plan": "premium",
+    "company": "Acme Inc",
+    "role": "admin"
+  },
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-20T14:45:00Z",
+  "first_seen_at": "2024-01-15T10:30:00Z",
+  "last_seen_at": "2024-01-20T14:45:00Z"
+}
+```
+
+### Field Reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Flare's internal identifier (read-only) |
+| `external_id` | string | Your unique identifier for this user |
+| `email` | string | User's email address |
+| `phone` | string | User's phone number (E.164 format recommended) |
+| `first_name` | string | User's first name |
+| `last_name` | string | User's last name |
+| `avatar_url` | string | URL to user's profile image |
+| `timezone` | string | IANA timezone (e.g., "America/New_York") |
+| `locale` | string | Locale code (e.g., "en-US") |
+| `status` | string | `active`, `unsubscribed`, or `bounced` |
+| `attributes` | object | Custom attributes (any JSON object) |
+| `created_at` | timestamp | When the person was created (read-only) |
+| `updated_at` | timestamp | When the person was last updated (read-only) |
+
+## Create a Person
+
+Create a new person profile.
+
+**Endpoint:** `POST /api/v1/workspaces/{workspace_id}/people`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      userId: 'user_12345',           // Required: your unique ID
+      email: 'jane@example.com',       // Optional but recommended
+      traits: {
+        first_name: 'Jane',
+        last_name: 'Doe',
+        plan: 'premium',
+        company: 'Acme Inc'
+      }
+    })
+  }
+);
+
+const person = await response.json();
+```
+
+```python
+response = requests.post(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'userId': 'user_12345',
+        'email': 'jane@example.com',
+        'traits': {
+            'first_name': 'Jane',
+            'last_name': 'Doe',
+            'plan': 'premium',
+            'company': 'Acme Inc'
+        }
+    }
+)
+
+person = response.json()
+```
+
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "userId": "user_12345",
+    "email": "jane@example.com",
+    "traits": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "plan": "premium",
+      "company": "Acme Inc"
+    }
+  }'
+```
+</CodeGroup>
+
+<Callout kind="tip">The `userId` field maps to `external_id` in the response. Use a stable, unique identifier from your system.</Callout>
+
+## Get a Person
+
+Retrieve a person by their Flare ID.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/people/{person_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/${personId}`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const person = await response.json();
+```
+
+```python
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/{person_id}',
+    headers={'X-API-Key': API_KEY}
+)
+
+person = response.json()
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/{person_id}" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Update a Person
+
+Update an existing person's attributes.
+
+**Endpoint:** `PUT /api/v1/workspaces/{workspace_id}/people/{person_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/${personId}`,
+  {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      traits: {
+        plan: 'enterprise',           // Update existing
+        renewal_date: '2025-01-15'    // Add new attribute
+      }
+    })
+  }
+);
+
+const person = await response.json();
+```
+
+```python
+response = requests.put(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/{person_id}',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'traits': {
+            'plan': 'enterprise',
+            'renewal_date': '2025-01-15'
+        }
+    }
+)
+
+person = response.json()
+```
+
+```bash
+curl -X PUT "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/{person_id}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "traits": {
+      "plan": "enterprise",
+      "renewal_date": "2025-01-15"
+    }
+  }'
+```
+</CodeGroup>
+
+<Callout kind="info">Updates are merged with existing data. To remove an attribute, set it to `null`.</Callout>
+
+## Upsert a Person
+
+Create a person if they don't exist, or update them if they do. This is the recommended approach for most integrations.
+
+**Endpoint:** `POST /api/v1/workspaces/{workspace_id}/people/upsert`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/upsert`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      userId: 'user_12345',
+      email: 'jane@example.com',
+      traits: {
+        first_name: 'Jane',
+        last_name: 'Doe',
+        last_login: new Date().toISOString()
+      }
+    })
+  }
+);
+
+const result = await response.json();
+console.log('Was created:', result.was_created);  // true if new, false if updated
+```
+
+```python
+response = requests.post(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/upsert',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'userId': 'user_12345',
+        'email': 'jane@example.com',
+        'traits': {
+            'first_name': 'Jane',
+            'last_name': 'Doe',
+            'last_login': datetime.utcnow().isoformat()
+        }
+    }
+)
+
+result = response.json()
+print(f"Was created: {result['was_created']}")
+```
+
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/upsert" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "userId": "user_12345",
+    "email": "jane@example.com",
+    "traits": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "last_login": "2024-01-20T14:45:00Z"
+    }
+  }'
+```
+</CodeGroup>
+
+The response includes a `was_created` boolean indicating whether the person was newly created or updated.
+
+## List People
+
+Retrieve a paginated list of people.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/people`
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | 20 | Number of results (max 100) |
+| `offset` | integer | 0 | Pagination offset |
+| `status` | string | - | Filter by status: `active`, `unsubscribed`, `bounced` |
+| `search` | string | - | Search by name or email |
+| `created_since` | timestamp | - | Filter by creation date |
+| `updated_since` | timestamp | - | Filter by last update date |
+
+<CodeGroup>
+```javascript
+const params = new URLSearchParams({
+  limit: '50',
+  status: 'active',
+  search: 'acme'
+});
+
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people?${params}`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const { people, total, limit, offset } = await response.json();
+```
+
+```python
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people',
+    headers={'X-API-Key': API_KEY},
+    params={
+        'limit': 50,
+        'status': 'active',
+        'search': 'acme'
+    }
+)
+
+data = response.json()
+people = data['people']
+total = data['total']
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people?limit=50&status=active&search=acme" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "people": [...],
+  "total": 1250,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+## Search People
+
+Search for people by specific criteria.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/people/search`
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `q` | string | General search query |
+| `email` | string | Exact email match |
+| `external_id` | string | Exact external_id match |
+| `limit` | integer | Number of results (default 10) |
+
+<CodeGroup>
+```javascript
+// Search by email
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/search?email=jane@example.com`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const { people } = await response.json();
+const person = people[0];  // First match
+```
+
+```python
+# Search by external_id
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/search',
+    headers={'X-API-Key': API_KEY},
+    params={'external_id': 'user_12345'}
+)
+
+data = response.json()
+person = data['people'][0] if data['people'] else None
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/search?email=jane@example.com" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Batch Upsert
+
+Create or update multiple people in a single request (max 100).
+
+**Endpoint:** `POST /api/v1/workspaces/{workspace_id}/people/batch`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/batch`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      people: [
+        {
+          userId: 'user_001',
+          email: 'alice@example.com',
+          traits: { first_name: 'Alice', plan: 'basic' }
+        },
+        {
+          userId: 'user_002',
+          email: 'bob@example.com',
+          traits: { first_name: 'Bob', plan: 'premium' }
+        },
+        // ... up to 100 people
+      ]
+    })
+  }
+);
+
+const { people, created_count, updated_count } = await response.json();
+```
+
+```python
+response = requests.post(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/batch',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'people': [
+            {
+                'userId': 'user_001',
+                'email': 'alice@example.com',
+                'traits': {'first_name': 'Alice', 'plan': 'basic'}
+            },
+            {
+                'userId': 'user_002',
+                'email': 'bob@example.com',
+                'traits': {'first_name': 'Bob', 'plan': 'premium'}
+            }
+        ]
+    }
+)
+
+result = response.json()
+print(f"Created: {result['created_count']}, Updated: {result['updated_count']}")
+```
+
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/batch" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "people": [
+      {"userId": "user_001", "email": "alice@example.com", "traits": {"first_name": "Alice"}},
+      {"userId": "user_002", "email": "bob@example.com", "traits": {"first_name": "Bob"}}
+    ]
+  }'
+```
+</CodeGroup>
+
+<Callout kind="warning">Maximum 100 people per batch request. For larger imports, split into multiple requests.</Callout>
+
+## Delete a Person
+
+Delete a person and all associated data.
+
+**Endpoint:** `DELETE /api/v1/workspaces/{workspace_id}/people/{person_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/${personId}`,
+  {
+    method: 'DELETE',
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+if (response.ok) {
+  console.log('Person deleted');
+}
+```
+
+```python
+response = requests.delete(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/{person_id}',
+    headers={'X-API-Key': API_KEY}
+)
+
+if response.status_code == 204:
+    print('Person deleted')
+```
+
+```bash
+curl -X DELETE "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/{person_id}" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+<Callout kind="warning">This action is irreversible. All associated events and device tokens will also be deleted.</Callout>
+
+## Get Person Events
+
+Retrieve events for a specific person.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/people/{person_id}/events`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/${personId}/events?limit=50`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const { events } = await response.json();
+```
+
+```python
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/{person_id}/events',
+    headers={'X-API-Key': API_KEY},
+    params={'limit': 50}
+)
+
+events = response.json()['events']
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/{person_id}/events?limit=50" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Get People Statistics
+
+Get aggregate statistics for your workspace.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/people/stats`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/people/stats`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const stats = await response.json();
+console.log(`Total: ${stats.total}, Active: ${stats.active}`);
+```
+
+```python
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/people/stats',
+    headers={'X-API-Key': API_KEY}
+)
+
+stats = response.json()
+print(f"Total: {stats['total']}, Active: {stats['active']}")
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people/stats" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "total": 15420,
+  "active": 14200,
+  "unsubscribed": 850,
+  "bounced": 370,
+  "recent": 245
+}
+```
+
+## Best Practices
+
+<ExpandableGroup>
+  <Expandable title="Use Upsert for Most Operations" default-open="true">
+    The upsert endpoint is ideal for most use cases. It handles both creation and updates in a single call, making your integration simpler and more resilient.
+  </Expandable>
+  <Expandable title="Choose Stable External IDs" default-open="false">
+    Use a stable, unique identifier as your `userId`. Database primary keys work well. Avoid using email addresses as they can change.
+  </Expandable>
+  <Expandable title="Batch When Possible" default-open="false">
+    For bulk operations, use the batch endpoint instead of making individual requests. This is more efficient and reduces API calls.
+  </Expandable>
+  <Expandable title="Store Relevant Attributes" default-open="false">
+    Only store attributes you'll use for segmentation or personalization. Common useful attributes:
+    - Subscription/plan level
+    - Signup date
+    - Last activity
+    - Geographic region
+    - Product usage metrics
+  </Expandable>
+</ExpandableGroup>

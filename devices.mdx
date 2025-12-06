@@ -1,0 +1,496 @@
+---
+title: Devices API
+description: Register and manage device tokens for push notifications
+---
+
+## Overview
+
+The Devices API allows you to register and manage device tokens for push notifications. When users install your mobile app or enable web push, you register their device token with Flare to enable push messaging.
+
+<Callout kind="info">**Required Permission**: `people:write` for registering devices, `people:read` for listing devices.</Callout>
+
+## Supported Platforms
+
+Flare supports push notifications on three platforms:
+
+<Columns cols={3}>
+  <Card title="iOS" icon="smartphone">
+    Apple Push Notification service (APNs) via Firebase Cloud Messaging
+  </Card>
+  <Card title="Android" icon="smartphone">
+    Firebase Cloud Messaging (FCM) for Android devices
+  </Card>
+  <Card title="Web" icon="globe">
+    Web Push API via Firebase Cloud Messaging
+  </Card>
+</Columns>
+
+## Device Token Object
+
+A device token in Flare has the following structure:
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "workspace_id": "ws_abc123",
+  "person_id": "550e8400-e29b-41d4-a716-446655440001",
+  "device_token": "fMhT8K9x...(FCM token)",
+  "platform": "ios",
+  "device_name": "iPhone 15 Pro",
+  "device_model": "iPhone16,1",
+  "os_version": "17.2",
+  "app_version": "2.1.0",
+  "is_active": true,
+  "is_valid": true,
+  "last_used_at": "2024-01-20T14:45:00Z",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-20T14:45:00Z"
+}
+```
+
+### Field Reference
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `person_id` | UUID | Yes | The person this device belongs to |
+| `device_token` | string | Yes | FCM/APNs token from the device |
+| `platform` | string | Yes | `ios`, `android`, or `web` |
+| `device_name` | string | No | Human-readable device name |
+| `device_model` | string | No | Device model identifier |
+| `os_version` | string | No | Operating system version |
+| `app_version` | string | No | Your app's version |
+
+## Register a Device
+
+Register a device token to enable push notifications for a user.
+
+**Endpoint:** `POST /api/v1/workspaces/{workspace_id}/devices`
+
+<Tabs>
+  <Tab title="iOS" icon="smartphone">
+    ```javascript
+    // After obtaining FCM token in your iOS app
+    async function registerIOSDevice(personId, fcmToken, deviceInfo) {
+      const response = await fetch(
+        `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/devices`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+          },
+          body: JSON.stringify({
+            person_id: personId,
+            device_token: fcmToken,
+            platform: 'ios',
+            device_name: deviceInfo.name,        // e.g., "John's iPhone"
+            device_model: deviceInfo.model,      // e.g., "iPhone16,1"
+            os_version: deviceInfo.osVersion,    // e.g., "17.2"
+            app_version: deviceInfo.appVersion   // e.g., "2.1.0"
+          })
+        }
+      );
+
+      return response.json();
+    }
+    ```
+
+    **Swift Example (getting the FCM token):**
+    ```swift
+    import FirebaseMessaging
+
+    Messaging.messaging().token { token, error in
+        if let token = token {
+            // Send this token to your backend
+            registerDevice(fcmToken: token)
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="Android" icon="smartphone">
+    ```javascript
+    // After obtaining FCM token in your Android app
+    async function registerAndroidDevice(personId, fcmToken, deviceInfo) {
+      const response = await fetch(
+        `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/devices`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+          },
+          body: JSON.stringify({
+            person_id: personId,
+            device_token: fcmToken,
+            platform: 'android',
+            device_name: deviceInfo.name,
+            device_model: deviceInfo.model,      // e.g., "Pixel 8 Pro"
+            os_version: deviceInfo.osVersion,    // e.g., "14"
+            app_version: deviceInfo.appVersion
+          })
+        }
+      );
+
+      return response.json();
+    }
+    ```
+
+    **Kotlin Example (getting the FCM token):**
+    ```kotlin
+    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            val token = task.result
+            // Send this token to your backend
+            registerDevice(fcmToken = token)
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="Web Push" icon="globe">
+    ```javascript
+    // After obtaining FCM token in your web app
+    async function registerWebDevice(personId, fcmToken) {
+      const response = await fetch(
+        `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/devices`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+          },
+          body: JSON.stringify({
+            person_id: personId,
+            device_token: fcmToken,
+            platform: 'web',
+            device_name: navigator.userAgent.includes('Chrome')
+              ? 'Chrome Browser'
+              : 'Web Browser',
+            os_version: navigator.platform,
+            app_version: '1.0.0'
+          })
+        }
+      );
+
+      return response.json();
+    }
+    ```
+
+    **Web Example (getting the FCM token):**
+    ```javascript
+    import { getToken } from 'firebase/messaging';
+
+    const token = await getToken(messaging, {
+      vapidKey: 'your-vapid-key'
+    });
+
+    // Send this token to your backend
+    await registerWebDevice(currentUserId, token);
+    ```
+  </Tab>
+</Tabs>
+
+<CodeGroup>
+```bash
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/devices" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "person_id": "550e8400-e29b-41d4-a716-446655440001",
+    "device_token": "fMhT8K9x...your_fcm_token",
+    "platform": "ios",
+    "device_name": "iPhone 15 Pro",
+    "device_model": "iPhone16,1",
+    "os_version": "17.2",
+    "app_version": "2.1.0"
+  }'
+```
+
+```python
+response = requests.post(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/devices',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'person_id': person_id,
+        'device_token': fcm_token,
+        'platform': 'ios',
+        'device_name': 'iPhone 15 Pro',
+        'device_model': 'iPhone16,1',
+        'os_version': '17.2',
+        'app_version': '2.1.0'
+    }
+)
+
+device = response.json()
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "person_id": "550e8400-e29b-41d4-a716-446655440001",
+  "device_token": "fMhT8K9x...",
+  "platform": "ios",
+  "is_active": true,
+  "is_valid": true,
+  "created_at": "2024-01-15T10:30:00Z"
+}
+```
+
+## List Devices
+
+Retrieve all devices for a workspace or person.
+
+**Endpoint:** `GET /api/v1/workspaces/{workspace_id}/devices`
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `person_id` | UUID | Filter by person |
+| `platform` | string | Filter by platform: `ios`, `android`, `web` |
+| `is_active` | boolean | Filter by active status |
+| `limit` | integer | Number of results (default 50, max 100) |
+| `offset` | integer | Pagination offset |
+
+<CodeGroup>
+```javascript
+// Get all devices for a user
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/devices?person_id=${personId}`,
+  {
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+const { devices } = await response.json();
+console.log(`User has ${devices.length} registered devices`);
+```
+
+```python
+response = requests.get(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/devices',
+    headers={'X-API-Key': API_KEY},
+    params={'person_id': person_id}
+)
+
+devices = response.json()['devices']
+```
+
+```bash
+curl "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/devices?person_id={person_id}" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Update a Device
+
+Update device information (e.g., when the app version changes).
+
+**Endpoint:** `PUT /api/v1/workspaces/{workspace_id}/devices/{device_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/devices/${deviceId}`,
+  {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      app_version: '2.2.0',
+      os_version: '17.3'
+    })
+  }
+);
+```
+
+```python
+response = requests.put(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/devices/{device_id}',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'app_version': '2.2.0',
+        'os_version': '17.3'
+    }
+)
+```
+
+```bash
+curl -X PUT "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/devices/{device_id}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{"app_version": "2.2.0", "os_version": "17.3"}'
+```
+</CodeGroup>
+
+## Delete a Device
+
+Remove a device token (e.g., when user logs out or uninstalls).
+
+**Endpoint:** `DELETE /api/v1/workspaces/{workspace_id}/devices/{device_id}`
+
+<CodeGroup>
+```javascript
+const response = await fetch(
+  `https://api.flameup.ai/api/v1/workspaces/${WORKSPACE_ID}/devices/${deviceId}`,
+  {
+    method: 'DELETE',
+    headers: {
+      'X-API-Key': API_KEY
+    }
+  }
+);
+
+if (response.ok) {
+  console.log('Device unregistered');
+}
+```
+
+```python
+response = requests.delete(
+    f'https://api.flameup.ai/api/v1/workspaces/{WORKSPACE_ID}/devices/{device_id}',
+    headers={'X-API-Key': API_KEY}
+)
+```
+
+```bash
+curl -X DELETE "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/devices/{device_id}" \
+  -H "X-API-Key: your_api_key"
+```
+</CodeGroup>
+
+## Token Lifecycle
+
+Device tokens have a lifecycle that Flare manages automatically:
+
+<Steps>
+  <Step title="Registration" icon="plus">
+    Token is registered when user enables notifications or installs the app.
+    - `is_active`: true
+    - `is_valid`: true
+  </Step>
+  <Step title="Active Use" icon="check">
+    Token is used for push delivery. `last_used_at` is updated with each use.
+  </Step>
+  <Step title="Token Refresh" icon="refresh-cw">
+    FCM may issue a new token. Re-register with the new token; Flare deduplicates by device.
+  </Step>
+  <Step title="Invalidation" icon="x">
+    If push delivery fails (uninstall, revoked permissions), token is marked:
+    - `is_valid`: false
+    - `is_active`: false
+  </Step>
+</Steps>
+
+## Handling Token Refresh
+
+FCM tokens can change. Handle token refresh in your app:
+
+<Tabs>
+  <Tab title="iOS (Swift)" icon="smartphone">
+    ```swift
+    extension AppDelegate: MessagingDelegate {
+        func messaging(_ messaging: Messaging,
+                       didReceiveRegistrationToken fcmToken: String?) {
+            guard let token = fcmToken else { return }
+
+            // Re-register with Flare
+            FlareAPI.registerDevice(token: token)
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="Android (Kotlin)" icon="smartphone">
+    ```kotlin
+    class MyFirebaseMessagingService : FirebaseMessagingService() {
+        override fun onNewToken(token: String) {
+            super.onNewToken(token)
+
+            // Re-register with Flare
+            FlareAPI.registerDevice(token)
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="Web" icon="globe">
+    ```javascript
+    import { onMessage, getToken } from 'firebase/messaging';
+
+    // Listen for token refresh
+    navigator.serviceWorker.addEventListener('message', async (event) => {
+      if (event.data.type === 'TOKEN_REFRESH') {
+        const newToken = await getToken(messaging);
+        await registerDevice(newToken);
+      }
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<ExpandableGroup>
+  <Expandable title="Register on Login" default-open="true">
+    Register the device token after user login to associate it with the correct person:
+
+    ```javascript
+    async function onUserLogin(userId) {
+      const fcmToken = await getFCMToken();
+      const person = await flare.identifyUser(userId);
+      await flare.registerDevice(person.id, fcmToken);
+    }
+    ```
+  </Expandable>
+  <Expandable title="Unregister on Logout" default-open="false">
+    Remove the device token when user logs out to prevent notifications going to the wrong person:
+
+    ```javascript
+    async function onUserLogout(deviceId) {
+      await flare.unregisterDevice(deviceId);
+      // Clear local FCM token if needed
+    }
+    ```
+  </Expandable>
+  <Expandable title="Handle Multiple Devices" default-open="false">
+    Users may have multiple devices. Flare handles this automatically:
+    - Each device gets its own token
+    - Campaigns can target all user devices or specific platforms
+    - Transactional messages go to all active devices by default
+  </Expandable>
+  <Expandable title="Update Device Info" default-open="false">
+    Keep device information current for better analytics and targeting:
+
+    ```javascript
+    // On app update
+    async function onAppUpdate(deviceId, newVersion) {
+      await flare.updateDevice(deviceId, {
+        app_version: newVersion
+      });
+    }
+    ```
+  </Expandable>
+</ExpandableGroup>
+
+## Troubleshooting
+
+<Callout kind="warning">Push not working? Check these common issues:</Callout>
+
+| Issue | Solution |
+|-------|----------|
+| Token not registered | Verify `person_id` exists and token is valid |
+| Wrong platform | Ensure `platform` matches the device (ios/android/web) |
+| Invalid token | Token may have expired; request a fresh token from FCM |
+| User not receiving | Check `is_active` and `is_valid` are both `true` |
+| Notification blocked | User may have disabled notifications in device settings |

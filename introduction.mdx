@@ -1,112 +1,205 @@
 ---
 title: Introduction
-description: Overview of Flame It Up and its core capabilities
+description: Welcome to Flare - The customer engagement platform for modern applications
 ---
 
-## Getting Started
+## Welcome to Flare
 
-Flame It Up is a powerful platform designed to ignite your productivity by streamlining workflows and enhancing collaboration. It provides intuitive tools for managing projects, tracking progress, and fostering team communication. Whether you're a small team or a large organization, Flame It Up helps you turn ideas into action with ease.
+Flare is a powerful customer engagement platform that enables you to understand your users, track their behavior, and communicate with them through personalized messaging campaigns. Whether you're sending transactional notifications, running automated campaigns, or analyzing user behavior, Flare provides the tools you need.
 
 <Columns cols={3}>
-  <Card title="Quick Start" icon="zap" href="#quick-start">
-    Get up and running in minutes with our guided setup process.
+  <Card title="Quick Start" icon="zap" href="quickstart">
+    Get up and running in 5 minutes with our step-by-step guide.
   </Card>
-  <Card title="Features" icon="star" href="features">
-    Explore the comprehensive features that make Flame It Up unique.
+  <Card title="API Reference" icon="code" href="api-reference">
+    Explore the complete API documentation with examples.
   </Card>
-  <Card title="API" icon="code" href="api-reference">
-    Integrate with our robust API for custom solutions.
+  <Card title="Authentication" icon="lock" href="authentication">
+    Learn how to authenticate your API requests.
   </Card>
 </Columns>
 
-## Core Concepts
+## What Can You Build?
 
-Understanding the fundamental principles of Flame It Up is essential for maximizing its potential. The platform revolves around three key concepts: ignition points, flame propagation, and heat management.
-
-Ignition points serve as the starting sparks that initiate projects and tasks. Flame propagation refers to how ideas and work spread through your team, ensuring everyone stays aligned. Heat management controls the intensity of activities to prevent burnout and maintain sustainable productivity.
+Flare provides a complete toolkit for customer engagement:
 
 <Tabs>
-  <Tab title="Basic" icon="book">
-    Start with the basics to understand how Flame It Up works.
+  <Tab title="Track Users" icon="users">
+    **People API** - Create and manage user profiles with rich attributes.
 
-    <Callout kind="info">For new users, we recommend beginning with the basic setup before exploring advanced features.</Callout>
+    - Identify users with custom IDs or email addresses
+    - Store user attributes and preferences
+    - Segment users based on behavior and properties
+    - Batch operations for efficient bulk updates
 
-    <Steps>
-      <Step title="Sign Up" icon="user">
-        Create your account at flameup.com to access the platform.
-      </Step>
-      <Step title="Create Project" icon="plus">
-        Set up your first project to organize your work.
-      </Step>
-      <Step title="Invite Team" icon="users">
-        Bring your team on board to start collaborating.
-      </Step>
-    </Steps>
+    <Callout kind="info">The People API supports upsert operations, making it easy to create or update users in a single call.</Callout>
   </Tab>
-  <Tab title="Advanced" icon="settings">
-    Dive deeper into customization and integration options.
+  <Tab title="Track Events" icon="activity">
+    **Events API** - Capture user actions and behaviors in real-time.
 
-    <Expandable title="API Integration" default-open="false">
-      Learn how to connect Flame It Up with your existing tools.
+    - Track page views, clicks, purchases, and custom events
+    - Attach rich properties to every event
+    - Query event history for analytics
+    - Trigger campaigns based on user actions
+  </Tab>
+  <Tab title="Send Messages" icon="mail">
+    **Messaging APIs** - Reach users through push notifications.
 
-      Use our REST API to integrate Flame It Up with external systems. The API supports authentication via API keys and provides endpoints for managing projects, tasks, and team members.
-    </Expandable>
-
-    <ExpandableGroup>
-      <Expandable title="Webhooks" default-open="false">
-        Set up webhooks to receive real-time notifications.
-
-        Configure webhooks to get instant updates on project changes and task completions.
-      </Expandable>
-      <Expandable title="Custom Fields" default-open="false">
-        Add custom fields to tailor the platform to your needs.
-
-        Create custom fields for additional metadata on projects and tasks.
-      </Expandable>
-    </ExpandableGroup>
+    - **Campaigns**: Automated messages triggered by events or schedules
+    - **Transactional**: One-off messages for confirmations, alerts, and updates
+    - **Push Notifications**: iOS, Android, and Web push support
   </Tab>
 </Tabs>
 
-## Support and Resources
+## Core Concepts
 
-We provide comprehensive support to ensure you have a smooth experience with Flame It Up. Our documentation covers everything from basic setup to advanced integrations.
+Understanding these key concepts will help you get the most out of Flare:
 
-<CodeGroup tabs="JavaScript,Python">
-  ````javascript
-  // Example: Initialize Flame It Up client
-const flameup = require('flameup');
+<ExpandableGroup>
+  <Expandable title="Workspaces" default-open="true">
+    Workspaces are isolated environments for your data. Each workspace has its own:
 
-const client = new flameup.Client({
-  apiKey: 'your-api-key',
-  baseUrl: 'https://api.flameup.com'
-});
+    - Users (People)
+    - Events
+    - Campaigns
+    - API Keys
 
-// Create a new project
-client.projects.create({
-  name: 'My Project',
-  description: 'A sample project'
-}).then(project => {
-  console.log('Project created:', project.id);
-});
-  ````
-  ````python
-import flameup
+    Use separate workspaces for development, staging, and production environments.
+  </Expandable>
+  <Expandable title="API Keys" default-open="false">
+    API keys authenticate your requests and determine what actions you can perform.
 
-# Initialize client
-client = flameup.Client(
-    api_key='your-api-key',
-    base_url='https://api.flameup.com'
+    - **Live keys**: For production use (`flare_live_...`)
+    - **Test keys**: For development and testing (`flare_test_...`)
+    - **Permissions**: Granular control over read/write access
+
+    See the [Authentication](/authentication) guide for details.
+  </Expandable>
+  <Expandable title="People & Events" default-open="false">
+    **People** represent your users. Each person has:
+    - A unique identifier (external_id)
+    - Contact information (email, phone)
+    - Custom attributes
+
+    **Events** represent user actions. Each event has:
+    - An event name (e.g., "purchase_completed")
+    - Properties (e.g., order_id, amount)
+    - Timestamp
+    - Associated person
+  </Expandable>
+</ExpandableGroup>
+
+## Base URL
+
+All API requests should be made to:
+
+```
+https://api.flameup.ai/api/v1
+```
+
+Workspace-scoped endpoints follow this pattern:
+
+```
+https://api.flameup.ai/api/v1/workspaces/{workspace_id}/{resource}
+```
+
+## Quick Example
+
+Here's a complete example showing how to identify a user and track an event:
+
+<CodeGroup>
+```javascript
+// Initialize with your API key
+const API_KEY = 'flare_live_your_api_key_here';
+const WORKSPACE_ID = 'your_workspace_id';
+const BASE_URL = 'https://api.flameup.ai/api/v1';
+
+// Identify a user
+const response = await fetch(
+  `${BASE_URL}/workspaces/${WORKSPACE_ID}/people`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    },
+    body: JSON.stringify({
+      userId: 'user_123',
+      email: 'jane@example.com',
+      traits: {
+        first_name: 'Jane',
+        last_name: 'Doe',
+        plan: 'premium'
+      }
+    })
+  }
+);
+
+const user = await response.json();
+console.log('User created:', user.id);
+```
+
+```python
+import requests
+
+API_KEY = 'flare_live_your_api_key_here'
+WORKSPACE_ID = 'your_workspace_id'
+BASE_URL = 'https://api.flameup.ai/api/v1'
+
+# Identify a user
+response = requests.post(
+    f'{BASE_URL}/workspaces/{WORKSPACE_ID}/people',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    },
+    json={
+        'userId': 'user_123',
+        'email': 'jane@example.com',
+        'traits': {
+            'first_name': 'Jane',
+            'last_name': 'Doe',
+            'plan': 'premium'
+        }
+    }
 )
 
-# Create project
-project = client.projects.create(
-    name='My Project',
-    description='A sample project'
-)
-print(f'Project created: {project.id}')
-  ````
+user = response.json()
+print(f"User created: {user['id']}")
+```
+
+```bash
+# Identify a user with cURL
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: flare_live_your_api_key_here" \
+  -d '{
+    "userId": "user_123",
+    "email": "jane@example.com",
+    "traits": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "plan": "premium"
+    }
+  }'
+```
 </CodeGroup>
 
-For troubleshooting common issues, refer to our FAQ section or contact support. The platform includes built-in error handling and logging to help diagnose problems quickly.
+## Next Steps
 
-<Callout kind="tip">Check out our changelog to stay updated on new features and improvements.</Callout>
+<Steps>
+  <Step title="Get Your API Key" icon="key">
+    Create an API key in your [Flare Dashboard](https://app.flameup.ai) with the permissions you need.
+  </Step>
+  <Step title="Identify Your Users" icon="users">
+    Use the [People API](/people) to create user profiles and store attributes.
+  </Step>
+  <Step title="Track Events" icon="activity">
+    Capture user behavior with the [Events API](/events) to power analytics and campaigns.
+  </Step>
+  <Step title="Send Messages" icon="send">
+    Set up [Campaigns](/campaigns) or send [Transactional](/transactional) messages to engage users.
+  </Step>
+</Steps>
+
+<Callout kind="tip">Need help? Check out the [API Reference](/api-reference) for detailed endpoint documentation, or reach out to our support team.</Callout>

@@ -1,0 +1,267 @@
+---
+title: Rate Limits
+description: Understanding Flare API rate limits and quotas
+---
+
+## Overview
+
+Flare implements rate limiting to ensure fair usage and platform stability. Rate limits are applied per API key and vary by endpoint type.
+
+## Rate Limit Tiers
+
+<Columns cols={3}>
+  <Card title="Standard" icon="zap">
+    **1,000 requests/minute**
+
+    Default for all API keys
+  </Card>
+  <Card title="High Volume" icon="trending-up">
+    **10,000 requests/minute**
+
+    For high-traffic applications
+  </Card>
+  <Card title="Enterprise" icon="building">
+    **Custom limits**
+
+    Tailored to your needs
+  </Card>
+</Columns>
+
+## Limits by Endpoint
+
+| Endpoint Category | Limit | Window |
+|-------------------|-------|--------|
+| People (read) | 1,000/min | Per API key |
+| People (write) | 500/min | Per API key |
+| Events (write) | 5,000/min | Per API key |
+| Campaigns | 100/min | Per API key |
+| Transactional | 1,000/min | Per API key |
+| Batch operations | 50/min | Per API key |
+
+## Rate Limit Headers
+
+Every API response includes rate limit information in headers:
+
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 950
+X-RateLimit-Reset: 1705320660
+```
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed in the window |
+| `X-RateLimit-Remaining` | Requests remaining in current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+
+## Handling Rate Limits
+
+When you exceed the rate limit, you'll receive a `429 Too Many Requests` response:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Retry after 60 seconds.",
+    "details": {
+      "retry_after": 60,
+      "limit": 1000,
+      "remaining": 0,
+      "reset_at": "2024-01-15T10:31:00Z"
+    }
+  }
+}
+```
+
+### Implementing Backoff
+
+<CodeGroup>
+```javascript
+class FlareClient {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.rateLimitRemaining = 1000;
+    this.rateLimitReset = null;
+  }
+
+  async request(endpoint, options = {}) {
+    // Check if we should wait
+    if (this.rateLimitRemaining <= 0 && this.rateLimitReset) {
+      const waitTime = this.rateLimitReset - Date.now();
+      if (waitTime > 0) {
+        await this.sleep(waitTime);
+      }
+    }
+
+    const response = await fetch(endpoint, {
+      ...options,
+      headers: {
+        'X-API-Key': this.apiKey,
+        ...options.headers
+      }
+    });
+
+    // Update rate limit tracking
+    this.rateLimitRemaining = parseInt(
+      response.headers.get('X-RateLimit-Remaining') || '1000'
+    );
+    this.rateLimitReset = parseInt(
+      response.headers.get('X-RateLimit-Reset') || '0'
+    ) * 1000;
+
+    if (response.status === 429) {
+      const error = await response.json();
+      const retryAfter = error.error?.details?.retry_after || 60;
+      await this.sleep(retryAfter * 1000);
+      return this.request(endpoint, options); // Retry
+    }
+
+    return response;
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+```
+
+```python
+import time
+import requests
+
+class FlareClient:
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.rate_limit_remaining = 1000
+        self.rate_limit_reset = None
+
+    def request(self, endpoint, method='GET', **kwargs):
+        # Check if we should wait
+        if self.rate_limit_remaining <= 0 and self.rate_limit_reset:
+            wait_time = self.rate_limit_reset - time.time()
+            if wait_time > 0:
+                time.sleep(wait_time)
+
+        headers = kwargs.pop('headers', {})
+        headers['X-API-Key'] = self.api_key
+
+        response = requests.request(
+            method, endpoint, headers=headers, **kwargs
+        )
+
+        # Update rate limit tracking
+        self.rate_limit_remaining = int(
+            response.headers.get('X-RateLimit-Remaining', 1000)
+        )
+        self.rate_limit_reset = int(
+            response.headers.get('X-RateLimit-Reset', 0)
+        )
+
+        if response.status_code == 429:
+            error = response.json()
+            retry_after = error.get('error', {}).get('details', {}).get('retry_after', 60)
+            time.sleep(retry_after)
+            return self.request(endpoint, method, **kwargs)  # Retry
+
+        return response
+```
+</CodeGroup>
+
+## Best Practices
+
+<ExpandableGroup>
+  <Expandable title="Use Batch Operations" default-open="true">
+    Instead of making individual requests, batch when possible:
+
+    ```javascript
+    // Bad: 100 individual requests
+    for (const user of users) {
+      await flare.createPerson(user);
+    }
+
+    // Good: 1 batch request
+    await flare.batchUpsertPeople(users);
+    ```
+
+    Batch endpoints are more efficient and have separate, higher limits.
+  </Expandable>
+  <Expandable title="Monitor Rate Limit Headers" default-open="false">
+    Track your usage to avoid hitting limits:
+
+    ```javascript
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    if (remaining < 100) {
+      console.warn('Approaching rate limit:', remaining);
+    }
+    ```
+  </Expandable>
+  <Expandable title="Implement Request Queuing" default-open="false">
+    Queue requests to stay within limits:
+
+    ```javascript
+    class RequestQueue {
+      constructor(maxPerSecond = 10) {
+        this.queue = [];
+        this.processing = false;
+        this.interval = 1000 / maxPerSecond;
+      }
+
+      async add(request) {
+        return new Promise((resolve, reject) => {
+          this.queue.push({ request, resolve, reject });
+          this.process();
+        });
+      }
+
+      async process() {
+        if (this.processing || this.queue.length === 0) return;
+        this.processing = true;
+
+        const { request, resolve, reject } = this.queue.shift();
+
+        try {
+          const result = await request();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+
+        setTimeout(() => {
+          this.processing = false;
+          this.process();
+        }, this.interval);
+      }
+    }
+    ```
+  </Expandable>
+  <Expandable title="Use Webhooks for Real-Time Updates" default-open="false">
+    Instead of polling, use webhooks to receive updates:
+
+    - Reduces API calls
+    - Provides real-time notifications
+    - More efficient than frequent polling
+  </Expandable>
+</ExpandableGroup>
+
+## Quota Limits
+
+In addition to rate limits, some operations have quota limits:
+
+| Resource | Limit | Period |
+|----------|-------|--------|
+| People | 100,000 | Per workspace |
+| Events | 10,000,000 | Per month |
+| Campaigns | 100 | Per workspace |
+| API Keys | 20 | Per workspace |
+| Device tokens | 10 per person | Per person |
+
+<Callout kind="info">Quota limits vary by plan. Contact support to increase limits.</Callout>
+
+## Requesting Higher Limits
+
+If you need higher rate limits:
+
+1. **Optimize your integration** - Use batching, caching, and webhooks
+2. **Contact support** - Explain your use case for limit increases
+3. **Upgrade your plan** - Higher tiers include higher limits
+4. **Enterprise plans** - Custom limits available for large-scale deployments

@@ -1,12 +1,12 @@
 {
-  "name": "Flameup Documentation",
+  "name": "Flare Developer Documentation",
   "initialRoute": "introduction",
   "colors": {
     "light": {
-      "brand": "#8c9494"
+      "brand": "#FF6B35"
     },
     "dark": {
-      "brand": "#8c9494"
+      "brand": "#FF8C5A"
     }
   },
   "navigation": {
@@ -23,33 +23,74 @@
                 "title": "Introduction",
                 "path": "introduction",
                 "icon": "star"
-              }
-            ]
-          },
-          {
-            "group": "Core Features",
-            "icon": "zap",
-            "pages": [
-              {
-                "title": "Features",
-                "path": "features",
-                "icon": "star"
               },
               {
-                "title": "Usage",
-                "path": "usage",
-                "icon": "play"
+                "title": "Authentication",
+                "path": "authentication",
+                "icon": "lock"
+              },
+              {
+                "title": "Quick Start",
+                "path": "quickstart",
+                "icon": "zap"
               }
             ]
           },
           {
-            "group": "Advanced",
-            "icon": "settings",
+            "group": "Core APIs",
+            "icon": "database",
             "pages": [
               {
-                "title": "Configuration",
-                "path": "configuration",
-                "icon": "settings"
+                "title": "People",
+                "path": "people",
+                "icon": "users"
+              },
+              {
+                "title": "Events",
+                "path": "events",
+                "icon": "activity"
+              },
+              {
+                "title": "Devices",
+                "path": "devices",
+                "icon": "smartphone"
+              }
+            ]
+          },
+          {
+            "group": "Messaging",
+            "icon": "mail",
+            "pages": [
+              {
+                "title": "Campaigns",
+                "path": "campaigns",
+                "icon": "send"
+              },
+              {
+                "title": "Transactional",
+                "path": "transactional",
+                "icon": "zap"
+              }
+            ]
+          },
+          {
+            "group": "Resources",
+            "icon": "book-open",
+            "pages": [
+              {
+                "title": "Error Handling",
+                "path": "errors",
+                "icon": "alert-triangle"
+              },
+              {
+                "title": "Rate Limits",
+                "path": "rate-limits",
+                "icon": "clock"
+              },
+              {
+                "title": "SDKs & Libraries",
+                "path": "sdks",
+                "icon": "package"
               }
             ]
           }

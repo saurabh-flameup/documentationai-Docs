@@ -1,0 +1,432 @@
+---
+title: SDKs & Libraries
+description: Official and community libraries for integrating with Flare
+---
+
+## Overview
+
+While you can use Flare's REST API directly, we provide SDKs and libraries to make integration easier.
+
+## REST API
+
+All Flare functionality is available through our REST API. Use standard HTTP clients in any language:
+
+<Columns cols={3}>
+  <Card title="JavaScript/Node.js" icon="code">
+    Use `fetch` or `axios`
+  </Card>
+  <Card title="Python" icon="code">
+    Use `requests` or `httpx`
+  </Card>
+  <Card title="Any Language" icon="globe">
+    Standard HTTP client
+  </Card>
+</Columns>
+
+## JavaScript / Node.js
+
+### Using Fetch (Recommended)
+
+Modern JavaScript includes fetch by default:
+
+```javascript
+// flare.js - Simple Flare wrapper
+class Flare {
+  constructor(apiKey, workspaceId) {
+    this.apiKey = apiKey;
+    this.workspaceId = workspaceId;
+    this.baseUrl = 'https://api.flameup.ai/api/v1';
+  }
+
+  async request(endpoint, options = {}) {
+    const url = `${this.baseUrl}/workspaces/${this.workspaceId}${endpoint}`;
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': this.apiKey,
+        ...options.headers
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Request failed');
+    }
+
+    return response.json();
+  }
+
+  // People
+  async identifyUser(userId, traits = {}) {
+    return this.request('/people', {
+      method: 'POST',
+      body: JSON.stringify({ userId, traits })
+    });
+  }
+
+  async getUser(userId) {
+    const result = await this.request(`/people/search?external_id=${userId}`);
+    return result.people[0] || null;
+  }
+
+  // Events
+  async track(userId, event, properties = {}) {
+    return this.request('/events', {
+      method: 'POST',
+      body: JSON.stringify({
+        userId,
+        event,
+        properties,
+        timestamp: new Date().toISOString()
+      })
+    });
+  }
+
+  // Push
+  async sendPush(userId, template, data = {}) {
+    return this.request('/transactional/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: userId,
+        template,
+        data
+      })
+    });
+  }
+}
+
+// Usage
+const flare = new Flare('flare_live_xxx', 'ws_abc123');
+
+await flare.identifyUser('user_123', {
+  email: 'jane@example.com',
+  first_name: 'Jane'
+});
+
+await flare.track('user_123', 'page_viewed', {
+  page: '/pricing'
+});
+```
+
+### Using Axios
+
+```javascript
+import axios from 'axios';
+
+const flare = axios.create({
+  baseURL: 'https://api.flameup.ai/api/v1',
+  headers: {
+    'X-API-Key': 'flare_live_xxx'
+  }
+});
+
+// Identify user
+await flare.post('/workspaces/ws_abc123/people', {
+  userId: 'user_123',
+  email: 'jane@example.com',
+  traits: { first_name: 'Jane' }
+});
+
+// Track event
+await flare.post('/workspaces/ws_abc123/events', {
+  userId: 'user_123',
+  event: 'purchase_completed',
+  properties: { amount: 99.99 }
+});
+```
+
+## Python
+
+### Using Requests
+
+```python
+import requests
+from datetime import datetime
+
+class Flare:
+    def __init__(self, api_key, workspace_id):
+        self.api_key = api_key
+        self.workspace_id = workspace_id
+        self.base_url = 'https://api.flameup.ai/api/v1'
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Content-Type': 'application/json',
+            'X-API-Key': api_key
+        })
+
+    def _url(self, endpoint):
+        return f'{self.base_url}/workspaces/{self.workspace_id}{endpoint}'
+
+    def identify(self, user_id, traits=None):
+        """Create or update a user profile."""
+        return self.session.post(
+            self._url('/people'),
+            json={'userId': user_id, 'traits': traits or {}}
+        ).json()
+
+    def track(self, user_id, event, properties=None):
+        """Track a user event."""
+        return self.session.post(
+            self._url('/events'),
+            json={
+                'userId': user_id,
+                'event': event,
+                'properties': properties or {},
+                'timestamp': datetime.utcnow().isoformat() + 'Z'
+            }
+        ).json()
+
+    def send_push(self, user_id, template, data=None):
+        """Send a transactional push notification."""
+        return self.session.post(
+            self._url('/transactional/send'),
+            json={
+                'user_id': user_id,
+                'template': template,
+                'data': data or {}
+            }
+        ).json()
+
+
+# Usage
+flare = Flare('flare_live_xxx', 'ws_abc123')
+
+flare.identify('user_123', {
+    'email': 'jane@example.com',
+    'first_name': 'Jane'
+})
+
+flare.track('user_123', 'page_viewed', {'page': '/pricing'})
+```
+
+### Using HTTPX (Async)
+
+```python
+import httpx
+from datetime import datetime
+
+class AsyncFlare:
+    def __init__(self, api_key, workspace_id):
+        self.api_key = api_key
+        self.workspace_id = workspace_id
+        self.base_url = 'https://api.flameup.ai/api/v1'
+        self.client = httpx.AsyncClient(
+            headers={
+                'Content-Type': 'application/json',
+                'X-API-Key': api_key
+            }
+        )
+
+    def _url(self, endpoint):
+        return f'{self.base_url}/workspaces/{self.workspace_id}{endpoint}'
+
+    async def identify(self, user_id, traits=None):
+        response = await self.client.post(
+            self._url('/people'),
+            json={'userId': user_id, 'traits': traits or {}}
+        )
+        return response.json()
+
+    async def track(self, user_id, event, properties=None):
+        response = await self.client.post(
+            self._url('/events'),
+            json={
+                'userId': user_id,
+                'event': event,
+                'properties': properties or {},
+                'timestamp': datetime.utcnow().isoformat() + 'Z'
+            }
+        )
+        return response.json()
+
+
+# Usage
+import asyncio
+
+async def main():
+    flare = AsyncFlare('flare_live_xxx', 'ws_abc123')
+
+    await flare.identify('user_123', {'email': 'jane@example.com'})
+    await flare.track('user_123', 'page_viewed', {'page': '/pricing'})
+
+asyncio.run(main())
+```
+
+## Mobile SDKs
+
+### iOS (Swift)
+
+```swift
+import Foundation
+
+class Flare {
+    private let apiKey: String
+    private let workspaceId: String
+    private let baseURL = "https://api.flameup.ai/api/v1"
+
+    init(apiKey: String, workspaceId: String) {
+        self.apiKey = apiKey
+        self.workspaceId = workspaceId
+    }
+
+    func identify(userId: String, traits: [String: Any] = [:]) async throws {
+        let url = URL(string: "\(baseURL)/workspaces/\(workspaceId)/people")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "userId": userId,
+            "traits": traits
+        ])
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            throw FlareError.requestFailed
+        }
+    }
+
+    func track(userId: String, event: String, properties: [String: Any] = [:]) async throws {
+        let url = URL(string: "\(baseURL)/workspaces/\(workspaceId)/events")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "userId": userId,
+            "event": event,
+            "properties": properties,
+            "timestamp": ISO8601DateFormatter().string(from: Date())
+        ])
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            throw FlareError.requestFailed
+        }
+    }
+}
+
+enum FlareError: Error {
+    case requestFailed
+}
+
+// Usage
+let flare = Flare(apiKey: "flare_live_xxx", workspaceId: "ws_abc123")
+
+Task {
+    try await flare.identify(userId: "user_123", traits: [
+        "email": "jane@example.com",
+        "first_name": "Jane"
+    ])
+
+    try await flare.track(userId: "user_123", event: "app_opened")
+}
+```
+
+### Android (Kotlin)
+
+```kotlin
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+
+class Flare(
+    private val apiKey: String,
+    private val workspaceId: String
+) {
+    private val client = OkHttpClient()
+    private val baseUrl = "https://api.flameup.ai/api/v1"
+    private val jsonMediaType = "application/json".toMediaType()
+
+    suspend fun identify(userId: String, traits: Map<String, Any> = emptyMap()) {
+        withContext(Dispatchers.IO) {
+            val body = JSONObject().apply {
+                put("userId", userId)
+                put("traits", JSONObject(traits))
+            }
+
+            val request = Request.Builder()
+                .url("$baseUrl/workspaces/$workspaceId/people")
+                .post(body.toString().toRequestBody(jsonMediaType))
+                .header("X-API-Key", apiKey)
+                .build()
+
+            client.newCall(request).execute()
+        }
+    }
+
+    suspend fun track(userId: String, event: String, properties: Map<String, Any> = emptyMap()) {
+        withContext(Dispatchers.IO) {
+            val body = JSONObject().apply {
+                put("userId", userId)
+                put("event", event)
+                put("properties", JSONObject(properties))
+                put("timestamp", java.time.Instant.now().toString())
+            }
+
+            val request = Request.Builder()
+                .url("$baseUrl/workspaces/$workspaceId/events")
+                .post(body.toString().toRequestBody(jsonMediaType))
+                .header("X-API-Key", apiKey)
+                .build()
+
+            client.newCall(request).execute()
+        }
+    }
+}
+
+// Usage
+val flare = Flare("flare_live_xxx", "ws_abc123")
+
+lifecycleScope.launch {
+    flare.identify("user_123", mapOf(
+        "email" to "jane@example.com",
+        "first_name" to "Jane"
+    ))
+
+    flare.track("user_123", "app_opened")
+}
+```
+
+## cURL Examples
+
+For quick testing or shell scripts:
+
+```bash
+# Set your credentials
+export FLARE_API_KEY="flare_live_xxx"
+export WORKSPACE_ID="ws_abc123"
+
+# Identify a user
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/$WORKSPACE_ID/people" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $FLARE_API_KEY" \
+  -d '{"userId": "user_123", "email": "jane@example.com"}'
+
+# Track an event
+curl -X POST "https://api.flameup.ai/api/v1/workspaces/$WORKSPACE_ID/events" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $FLARE_API_KEY" \
+  -d '{"userId": "user_123", "event": "test_event"}'
+```
+
+## OpenAPI Specification
+
+Use our OpenAPI spec to generate clients in any language:
+
+- **Spec URL**: See the [API Reference](/api-reference)
+- **Generators**: Use [OpenAPI Generator](https://openapi-generator.tech/) or similar tools
+
+```bash
+# Generate a TypeScript client
+openapi-generator generate \
+  -i https://api.flameup.ai/openapi.yaml \
+  -g typescript-fetch \
+  -o ./flare-client
+```
