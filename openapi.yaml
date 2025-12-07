@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Flare API
+  title: Flameup API
   description: |
-    The Flare API enables you to manage user profiles, track events, and send push notifications.
+    The Flameup API enables you to manage user profiles, track events, and send push notifications.
 
     ## Authentication
     All requests require an API key passed in the `X-API-Key` header.
@@ -13,7 +13,7 @@ info:
     ```
   version: 1.0.0
   contact:
-    name: Flare Support
+    name: Flameup Support
     url: https://flameup.ai/support
   license:
     name: Proprietary
@@ -706,7 +706,7 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: Your Flare API key
+      description: Your Flameup API key
 
   parameters:
     WorkspaceId:
@@ -990,7 +990,7 @@ components:
       properties:
         user_id:
           type: string
-          description: User's external_id or Flare person_id
+          description: User's external_id or Flameup person_id
         template_id:
           type: string
           description: ID of a pre-defined template

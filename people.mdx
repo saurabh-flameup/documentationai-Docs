@@ -1,17 +1,17 @@
 ---
 title: People API
-description: Create, update, and manage user profiles with the Flare People API
+description: Create, update, and manage user profiles with the Flameup People API
 ---
 
 ## Overview
 
-The People API allows you to manage user profiles in Flare. Each person represents a user in your system with their contact information, attributes, and engagement history.
+The People API allows you to manage user profiles in Flameup. Each person represents a user in your system with their contact information, attributes, and engagement history.
 
 <Callout kind="info">**Required Permission**: `people:read` for GET requests, `people:write` for POST/PUT/DELETE requests.</Callout>
 
 ## Person Object
 
-A person in Flare has the following structure:
+A person in Flameup has the following structure:
 
 ```json
 {
@@ -42,7 +42,7 @@ A person in Flare has the following structure:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | UUID | Flare's internal identifier (read-only) |
+| `id` | UUID | Flameup's internal identifier (read-only) |
 | `external_id` | string | Your unique identifier for this user |
 | `email` | string | User's email address |
 | `phone` | string | User's phone number (E.164 format recommended) |
@@ -131,7 +131,7 @@ curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people" \
 
 ## Get a Person
 
-Retrieve a person by their Flare ID.
+Retrieve a person by their Flameup ID.
 
 **Endpoint:** `GET /api/v1/workspaces/{workspace_id}/people/{person_id}`
 

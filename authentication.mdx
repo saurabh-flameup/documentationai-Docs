@@ -1,17 +1,17 @@
 ---
 title: Authentication
-description: Learn how to authenticate your API requests with Flare
+description: Learn how to authenticate your API requests with Flameup
 ---
 
 ## Authentication Overview
 
-Flare uses API keys to authenticate requests. Each API key is scoped to a specific workspace and has granular permissions that control what operations it can perform.
+Flameup uses API keys to authenticate requests. Each API key is scoped to a specific workspace and has granular permissions that control what operations it can perform.
 
 <Callout kind="warning">Keep your API keys secure. Never expose them in client-side code, public repositories, or logs. If a key is compromised, revoke it immediately from your dashboard.</Callout>
 
 ## API Key Format
 
-Flare API keys follow this format:
+Flameup API keys follow this format:
 
 ```
 flare_{workspace_id}_{random_string}
@@ -60,7 +60,7 @@ curl -X GET "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/people" \
 
 ## API Key Environments
 
-Flare provides two environments for your API keys:
+Flameup provides two environments for your API keys:
 
 <Columns cols={2}>
   <Card title="Live Keys" icon="check-circle">
@@ -144,7 +144,7 @@ API keys have granular permissions that control access to different resources:
 
 <Steps>
   <Step title="Open Dashboard" icon="layout">
-    Log in to your [Flare Dashboard](https://app.flameup.ai) and navigate to Settings > API Keys.
+    Log in to your [Flameup Dashboard](https://app.flameup.ai) and navigate to Settings > API Keys.
   </Step>
   <Step title="Create New Key" icon="plus">
     Click "Create API Key" and provide:

@@ -1,11 +1,11 @@
 ---
 title: Error Handling
-description: Understanding and handling Flare API errors
+description: Understanding and handling Flameup API errors
 ---
 
 ## Error Response Format
 
-All Flare API errors follow a consistent format:
+All Flameup API errors follow a consistent format:
 
 ```json
 {
@@ -22,7 +22,7 @@ All Flare API errors follow a consistent format:
 
 ## HTTP Status Codes
 
-Flare uses standard HTTP status codes:
+Flameup uses standard HTTP status codes:
 
 | Code | Meaning | Description |
 |------|---------|-------------|
@@ -300,7 +300,7 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
           await sleep(retryAfter * 1000);
           continue;
         }
-        throw new FlareError(error);
+        throw new FlameupError(error);
       }
 
       // Server error - retry with backoff
@@ -309,7 +309,7 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
         continue;
       }
 
-      throw new FlareError(error);
+      throw new FlameupError(error);
 
     } catch (networkError) {
       if (attempt < maxRetries - 1) {
@@ -346,14 +346,14 @@ def fetch_with_retry(url, options, max_retries=3):
                     retry_after = error.get('error', {}).get('details', {}).get('retry_after', 60)
                     time.sleep(retry_after)
                     continue
-                raise FlareError(error)
+                raise FlameupError(error)
 
             # Server error - retry with backoff
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)
                 continue
 
-            raise FlareError(error)
+            raise FlameupError(error)
 
         except requests.RequestException:
             if attempt < max_retries - 1:
@@ -369,7 +369,7 @@ Log errors with context for debugging:
 
 ```javascript
 function logError(error, context) {
-  console.error('Flare API Error', {
+  console.error('Flameup API Error', {
     code: error.code,
     message: error.message,
     details: error.details,

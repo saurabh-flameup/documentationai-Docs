@@ -114,7 +114,7 @@ curl -X POST "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/transactio
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `user_id` | string | Yes | The user's external_id or Flare person_id |
+| `user_id` | string | Yes | The user's external_id or Flameup person_id |
 | `template_id` | string | Yes* | ID of a pre-defined template |
 | `template` | object | Yes* | Inline template (if no template_id) |
 | `data` | object | No | Variables for template personalization |
@@ -498,7 +498,7 @@ async function sendNotification(userId, template, data) {
     if (!result.success) {
       switch (result.error.code) {
         case 'user_not_found':
-          console.log('User not found in Flare');
+          console.log('User not found in Flameup');
           break;
         case 'no_devices':
           console.log('User has no push-enabled devices');

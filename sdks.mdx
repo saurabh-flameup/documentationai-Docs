@@ -1,15 +1,15 @@
 ---
 title: SDKs & Libraries
-description: Official and community libraries for integrating with Flare
+description: Official and community libraries for integrating with Flameup
 ---
 
 ## Overview
 
-While you can use Flare's REST API directly, we provide SDKs and libraries to make integration easier.
+While you can use Flameup's REST API directly, we provide SDKs and libraries to make integration easier.
 
 ## REST API
 
-All Flare functionality is available through our REST API. Use standard HTTP clients in any language:
+All Flameup functionality is available through our REST API. Use standard HTTP clients in any language:
 
 <Columns cols={3}>
   <Card title="JavaScript/Node.js" icon="code">
@@ -30,8 +30,8 @@ All Flare functionality is available through our REST API. Use standard HTTP cli
 Modern JavaScript includes fetch by default:
 
 ```javascript
-// flare.js - Simple Flare wrapper
-class Flare {
+// flare.js - Simple Flameup wrapper
+class Flameup {
   constructor(apiKey, workspaceId) {
     this.apiKey = apiKey;
     this.workspaceId = workspaceId;
@@ -98,7 +98,7 @@ class Flare {
 }
 
 // Usage
-const flare = new Flare('flare_live_xxx', 'ws_abc123');
+const flare = new Flameup('flare_live_xxx', 'ws_abc123');
 
 await flare.identifyUser('user_123', {
   email: 'jane@example.com',
@@ -145,7 +145,7 @@ await flare.post('/workspaces/ws_abc123/events', {
 import requests
 from datetime import datetime
 
-class Flare:
+class Flameup:
     def __init__(self, api_key, workspace_id):
         self.api_key = api_key
         self.workspace_id = workspace_id
@@ -191,7 +191,7 @@ class Flare:
 
 
 # Usage
-flare = Flare('flare_live_xxx', 'ws_abc123')
+flare = Flameup('flare_live_xxx', 'ws_abc123')
 
 flare.identify('user_123', {
     'email': 'jane@example.com',
@@ -207,7 +207,7 @@ flare.track('user_123', 'page_viewed', {'page': '/pricing'})
 import httpx
 from datetime import datetime
 
-class AsyncFlare:
+class AsyncFlameup:
     def __init__(self, api_key, workspace_id):
         self.api_key = api_key
         self.workspace_id = workspace_id
@@ -246,7 +246,7 @@ class AsyncFlare:
 import asyncio
 
 async def main():
-    flare = AsyncFlare('flare_live_xxx', 'ws_abc123')
+    flare = AsyncFlameup('flare_live_xxx', 'ws_abc123')
 
     await flare.identify('user_123', {'email': 'jane@example.com'})
     await flare.track('user_123', 'page_viewed', {'page': '/pricing'})
@@ -261,7 +261,7 @@ asyncio.run(main())
 ```swift
 import Foundation
 
-class Flare {
+class Flameup {
     private let apiKey: String
     private let workspaceId: String
     private let baseURL = "https://api.flameup.ai/api/v1"
@@ -284,7 +284,7 @@ class Flare {
 
         let (_, response) = try await URLSession.shared.data(for: request)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            throw FlareError.requestFailed
+            throw FlameupError.requestFailed
         }
     }
 
@@ -303,17 +303,17 @@ class Flare {
 
         let (_, response) = try await URLSession.shared.data(for: request)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            throw FlareError.requestFailed
+            throw FlameupError.requestFailed
         }
     }
 }
 
-enum FlareError: Error {
+enum FlameupError: Error {
     case requestFailed
 }
 
 // Usage
-let flare = Flare(apiKey: "flare_live_xxx", workspaceId: "ws_abc123")
+let flare = Flameup(apiKey: "flare_live_xxx", workspaceId: "ws_abc123")
 
 Task {
     try await flare.identify(userId: "user_123", traits: [
@@ -336,7 +336,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-class Flare(
+class Flameup(
     private val apiKey: String,
     private val workspaceId: String
 ) {
@@ -382,7 +382,7 @@ class Flare(
 }
 
 // Usage
-val flare = Flare("flare_live_xxx", "ws_abc123")
+val flare = Flameup("flare_live_xxx", "ws_abc123")
 
 lifecycleScope.launch {
     flare.identify("user_123", mapOf(

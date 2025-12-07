@@ -5,13 +5,13 @@ description: Register and manage device tokens for push notifications
 
 ## Overview
 
-The Devices API allows you to register and manage device tokens for push notifications. When users install your mobile app or enable web push, you register their device token with Flare to enable push messaging.
+The Devices API allows you to register and manage device tokens for push notifications. When users install your mobile app or enable web push, you register their device token with Flameup to enable push messaging.
 
 <Callout kind="info">**Required Permission**: `people:write` for registering devices, `people:read` for listing devices.</Callout>
 
 ## Supported Platforms
 
-Flare supports push notifications on three platforms:
+Flameup supports push notifications on three platforms:
 
 <Columns cols={3}>
   <Card title="iOS" icon="smartphone">
@@ -27,7 +27,7 @@ Flare supports push notifications on three platforms:
 
 ## Device Token Object
 
-A device token in Flare has the following structure:
+A device token in Flameup has the following structure:
 
 ```json
 {
@@ -373,7 +373,7 @@ curl -X DELETE "https://api.flameup.ai/api/v1/workspaces/{workspace_id}/devices/
 
 ## Token Lifecycle
 
-Device tokens have a lifecycle that Flare manages automatically:
+Device tokens have a lifecycle that Flameup manages automatically:
 
 <Steps>
   <Step title="Registration" icon="plus">
@@ -385,7 +385,7 @@ Device tokens have a lifecycle that Flare manages automatically:
     Token is used for push delivery. `last_used_at` is updated with each use.
   </Step>
   <Step title="Token Refresh" icon="refresh-cw">
-    FCM may issue a new token. Re-register with the new token; Flare deduplicates by device.
+    FCM may issue a new token. Re-register with the new token; Flameup deduplicates by device.
   </Step>
   <Step title="Invalidation" icon="x">
     If push delivery fails (uninstall, revoked permissions), token is marked:
@@ -406,8 +406,8 @@ FCM tokens can change. Handle token refresh in your app:
                        didReceiveRegistrationToken fcmToken: String?) {
             guard let token = fcmToken else { return }
 
-            // Re-register with Flare
-            FlareAPI.registerDevice(token: token)
+            // Re-register with Flameup
+            FlameupAPI.registerDevice(token: token)
         }
     }
     ```
@@ -418,8 +418,8 @@ FCM tokens can change. Handle token refresh in your app:
         override fun onNewToken(token: String) {
             super.onNewToken(token)
 
-            // Re-register with Flare
-            FlareAPI.registerDevice(token)
+            // Re-register with Flameup
+            FlameupAPI.registerDevice(token)
         }
     }
     ```
@@ -464,7 +464,7 @@ FCM tokens can change. Handle token refresh in your app:
     ```
   </Expandable>
   <Expandable title="Handle Multiple Devices" default-open="false">
-    Users may have multiple devices. Flare handles this automatically:
+    Users may have multiple devices. Flameup handles this automatically:
     - Each device gets its own token
     - Campaigns can target all user devices or specific platforms
     - Transactional messages go to all active devices by default

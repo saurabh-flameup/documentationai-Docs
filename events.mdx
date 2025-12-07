@@ -1,6 +1,6 @@
 ---
 title: Events API
-description: Track user behavior and actions with the Flare Events API
+description: Track user behavior and actions with the Flameup Events API
 ---
 
 ## Overview
@@ -11,7 +11,7 @@ The Events API allows you to track user actions and behaviors in your applicatio
 
 ## Event Object
 
-An event in Flare has the following structure:
+An event in Flameup has the following structure:
 
 ```json
 {
@@ -41,7 +41,7 @@ An event in Flare has the following structure:
 
 ## Track an Event
 
-Record a user action in Flare.
+Record a user action in Flameup.
 
 **Endpoint:** `POST /api/v1/workspaces/{workspace_id}/events`
 
@@ -357,7 +357,7 @@ Use `object_action` format with snake_case:
 
 ### Standard Events
 
-These events are recognized by Flare for analytics:
+These events are recognized by Flameup for analytics:
 
 | Event | Description |
 |-------|-------------|
@@ -419,7 +419,7 @@ Condition: plan = 'free'
     - Use ISO 8601 format: `2024-01-15T10:30:00Z`
     - Include timezone (use UTC when possible)
     - Only backdate events when you have accurate historical data
-    - The `timestamp` field represents when the event occurred; `created_at` is when Flare received it
+    - The `timestamp` field represents when the event occurred; `created_at` is when Flameup received it
   </Expandable>
   <Expandable title="Handle High Volume" default-open="false">
     For high-volume applications:

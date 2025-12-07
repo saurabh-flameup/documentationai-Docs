@@ -1,11 +1,11 @@
 ---
 title: Rate Limits
-description: Understanding Flare API rate limits and quotas
+description: Understanding Flameup API rate limits and quotas
 ---
 
 ## Overview
 
-Flare implements rate limiting to ensure fair usage and platform stability. Rate limits are applied per API key and vary by endpoint type.
+Flameup implements rate limiting to ensure fair usage and platform stability. Rate limits are applied per API key and vary by endpoint type.
 
 ## Rate Limit Tiers
 
@@ -77,7 +77,7 @@ When you exceed the rate limit, you'll receive a `429 Too Many Requests` respons
 
 <CodeGroup>
 ```javascript
-class FlareClient {
+class FlameupClient {
   constructor(apiKey) {
     this.apiKey = apiKey;
     this.rateLimitRemaining = 1000;
@@ -129,7 +129,7 @@ class FlareClient {
 import time
 import requests
 
-class FlareClient:
+class FlameupClient:
     def __init__(self, api_key):
         self.api_key = api_key
         self.rate_limit_remaining = 1000
